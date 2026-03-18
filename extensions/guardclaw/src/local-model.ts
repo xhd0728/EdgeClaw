@@ -27,6 +27,8 @@ export type ChatCompletionOptions = {
   stop?: string[];
   frequencyPenalty?: number;
   apiKey?: string;
+  /** Force-disable reasoning/thinking output for compatible backends. */
+  disableThinking?: boolean;
 };
 
 export type LlmUsageInfo = {
@@ -133,6 +135,9 @@ async function callOpenAICompatible(
       stream: false,
       ...(options?.stop ? { stop: options.stop } : {}),
       ...(options?.frequencyPenalty != null ? { frequency_penalty: options.frequencyPenalty } : {}),
+      ...(options?.disableThinking
+        ? { chat_template_kwargs: { enable_thinking: false } }
+        : {}),
     }),
   });
 
@@ -391,6 +396,7 @@ async function callLocalModel(
       temperature: 0.1,
       maxTokens: 32768,
       apiKey: config.localModel?.apiKey,
+      disableThinking: true,
       providerType,
       customModule: config.localModel?.module,
     },
@@ -551,6 +557,7 @@ async function extractPiiWithModel(
       maxTokens: 32768,
       stop: ["Input:", "Task:"],
       apiKey: opts?.apiKey,
+      disableThinking: true,
       providerType: opts?.providerType,
       customModule: opts?.customModule,
     },
