@@ -1,25 +1,13 @@
-<div align="center">
-  <img src="./assets/EdgeClaw-logo.png" alt="EdgeClaw Logo" width="25%"></img>
-</div>
 
-<h3 align="center">
-Secure · Cost-Effective · Efficient
-</h3>
 
-<p align="center">
-  Edge-Cloud Collaborative AI Agent<br>
-  <b>EdgeClaw</b>: Keep sensitive data off the cloud, let cheap models handle 80% of requests
-</p>
+### Secure · Cost-Effective · Efficient
 
-<p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT License"></a>
-  <a href="https://github.com/openbmb/edgeclaw"><img src="https://img.shields.io/github/stars/openbmb/edgeclaw?style=for-the-badge" alt="Stars"></a>
-  <a href="https://github.com/openbmb/edgeclaw/issues"><img src="https://img.shields.io/github/issues/openbmb/edgeclaw?style=for-the-badge" alt="Issues"></a>
-</p>
+Edge-Cloud Collaborative AI Agent  
+**EdgeClaw**: Keep sensitive data off the cloud, let cheap models handle 80% of requests
 
-<p align="center">
-    【<a href="./readme_zh.md"><b>中文</b></a> | English】
-</p>
+
+
+【**[中文](./readme_zh.md)** | English】
 
 ---
 
@@ -36,48 +24,41 @@ EdgeClaw is an **Edge-Cloud Collaborative AI Agent** jointly developed by [THUNL
 
 In current AI Agent architectures, the edge side has long been overlooked — all data and tasks are funneled to the cloud, leading to privacy leaks and wasted compute. EdgeClaw reactivates the value of edge computing by constructing a customizable three-tier security system (S1 Passthrough / S2 Desensitization / S3 Local). Through a dual-engine on the edge (rule-based detection ~0ms + local LLM semantic detection ~1–2s), it classifies the sensitivity and complexity of every request in real time, then routes each request through a unified composable pipeline to the most privacy-safe and cost-effective processing path. With intelligent edge-cloud forwarding, developers can achieve seamless privacy protection — "public data to cloud, sensitive data desensitized, private data stays local" — without modifying any business logic.
 
-<div align="center">
-  <img src="./assets/EdgeClaw-arch.png" alt="EdgeClaw Architecture" width="90%"></img>
-</div>
+
 
 ---
 
 ## ✨ Key Highlights
 
-<table>
-<tr>
-<td width="50%">
+
+|     |
+| --- |
+|     |
+
 
 **🤝 Edge-Cloud Division of Labor**
 
 The edge perceives data attributes (sensitivity, complexity); the cloud handles reasoning and generation. The edge covers the cloud's blind spots (sensitive data never leaves the device), while the cloud compensates for the edge's limitations (complex tasks are offloaded to the cloud).
 
-</td>
-<td width="50%">
+
 
 **🔒 Three-Tier Security Collaboration**
 
 Safe data (S1) — sent directly to the cloud; Sensitive data (S2) — desensitized on-device before forwarding to the cloud; Private data (S3) — processed entirely on-device, with the cloud only maintaining context continuity.
 
-</td>
-</tr>
-<tr>
-<td width="50%">
+
 
 **💰 Cost-Aware Collaboration**
 
 A local LLM semantically judges task complexity, routing simple tasks to cheap models and reserving expensive models for complex tasks only. In typical workflows, 60–80% of requests are forwarded to low-cost models, drastically cutting cloud token expenses.
 
-</td>
-<td width="50%">
+
 
 **🚀 Plug-and-Play, Zero Code Changes**
 
 EdgeClaw automatically intercepts and routes via its Hook mechanism — no modifications to any business logic required. It serves as a seamless drop-in replacement for OpenClaw.
 
-</td>
-</tr>
-</table>
+
 
 ---
 
@@ -87,18 +68,22 @@ EdgeClaw automatically intercepts and routes via its Hook mechanism — no modif
 
 Every user message, tool call, and tool result is inspected in real time and automatically classified into one of three levels:
 
+
 | Level  | Meaning   | Routing Strategy                  | Example                          |
 | ------ | --------- | --------------------------------- | -------------------------------- |
 | **S1** | Safe      | Send directly to cloud model      | "Write a poem about spring"      |
 | **S2** | Sensitive | Desensitize then forward to cloud | Addresses, phone numbers, emails |
 | **S3** | Private   | Process locally only              | Pay slips, passwords, SSH keys   |
 
+
 ### Dual Detection Engines
+
 
 | Engine                 | Mechanism                                            | Latency | Coverage                                                                             |
 | ---------------------- | ---------------------------------------------------- | ------- | ------------------------------------------------------------------------------------ |
 | **Rule Detector**      | Keywords + Regex matching                            | ~0ms    | Known patterns: API keys, DB connection strings, PEM key headers                     |
 | **Local LLM Detector** | Semantic understanding (runs on a local small model) | ~1–2s   | Contextual reasoning: "Analyze this pay slip for me", addresses in various languages |
+
 
 The two engines can be stacked and combined, flexibly enabled per scenario via the `checkpoints` configuration.
 
@@ -154,13 +139,13 @@ The cloud model **never sees** `MEMORY-FULL.md` or `sessions/full/` — the Hook
 
 ### Security Guarantees
 
-**Theorem 1 (Cloud-Side Invisibility)**: For any S3-level data _x_, its original content is completely invisible to the cloud:
+**Theorem 1 (Cloud-Side Invisibility)**: For any S3-level data *x*, its original content is completely invisible to the cloud:
 
-<p align="center">∀ <i>x</i>, &nbsp; Detect(<i>x</i>) = S₃ &nbsp;⟹&nbsp; <i>x</i> ∉ Cloud(<i>x</i>)</p>
+∀ *x*,   Detect(*x*) = S₃  ⟹  *x* ∉ Cloud(*x*)
 
-**Theorem 2 (Desensitization Completeness)**: For any S2-level data _x_, the cloud-visible form contains none of the original privacy entity values:
+**Theorem 2 (Desensitization Completeness)**: For any S2-level data *x*, the cloud-visible form contains none of the original privacy entity values:
 
-<p align="center">∀ <i>x</i>, &nbsp; Detect(<i>x</i>) = S₂ &nbsp;⟹&nbsp; ∀ (<i>t<sub>i</sub></i>, <i>v<sub>i</sub></i>) ∈ Extract(<i>x</i>), &nbsp; <i>v<sub>i</sub></i> ∉ Cloud(<i>x</i>)</p>
+∀ *x*,   Detect(*x*) = S₂  ⟹  ∀ (*ti*, *vi*) ∈ Extract(*x*),   *vi* ∉ Cloud(*x*)
 
 ---
 
@@ -170,6 +155,7 @@ The cloud model **never sees** `MEMORY-FULL.md` or `sessions/full/` — the Hook
 
 In a typical AI coding assistant workflow, most requests involve browsing files, reading code, and simple Q&A — using the most expensive model for these tasks is pure waste. Cost-Aware Collaboration uses a local small model as an LLM-as-Judge, classifying requests by complexity and routing them to cloud models at different price tiers.
 
+
 | Complexity    | Task Examples                                                  | Default Target Model |
 | ------------- | -------------------------------------------------------------- | -------------------- |
 | **SIMPLE**    | Queries, translation, formatting, greetings                    | `gpt-4o-mini`        |
@@ -177,12 +163,15 @@ In a typical AI coding assistant workflow, most requests involve browsing files,
 | **COMPLEX**   | System design, multi-file refactoring, cross-document analysis | `claude-sonnet-4.6`  |
 | **REASONING** | Mathematical proofs, formal logic, experiment design           | `o4-mini`            |
 
+
 ### Why LLM-as-Judge Instead of Keyword Rules?
+
 
 | Approach         | Pros                                     | Cons                                                |
 | ---------------- | ---------------------------------------- | --------------------------------------------------- |
 | Keyword Rules    | Fast                                     | No semantic understanding, high false-positive rate |
 | **LLM-as-Judge** | **Semantic understanding, multilingual** | One additional local model call (~1–2s)             |
+
 
 The Judge runs on a local small model (e.g., MiniCPM-4.1 / Qwen3.5), with latency of approximately 1–2 seconds.
 
@@ -229,6 +218,7 @@ m ─[c_msg]→ Detect(m) → l ─[c_route]→ R(l) → a → ⎨ θ_cloud(De(m
 
 ### 10 Hooks Covering the Complete Lifecycle
 
+
 | Hook                   | Trigger Point              | Core Responsibility                         |
 | ---------------------- | -------------------------- | ------------------------------------------- |
 | `before_model_resolve` | Before model selection     | Run pipeline → routing decision             |
@@ -241,6 +231,7 @@ m ─[c_msg]→ Detect(m) → l ─[c_route]→ R(l) → a → ⎨ θ_cloud(De(m
 | `message_sending`      | Outbound message           | Detect and desensitize/cancel               |
 | `before_agent_start`   | Before sub-agent starts    | Task content guard                          |
 | `message_received`     | Message received           | Observability logging                       |
+
 
 ---
 
@@ -300,7 +291,7 @@ Add the following to `openclaw.json`:
 {
   "plugins": {
     "entries": {
-      "GuardClaw": {
+      "guardclaw": {
         "enabled": true,
         "config": {
           "privacy": {
@@ -384,9 +375,7 @@ Enable it in `privacy.routers`:
 
 ## 🎬 Demo
 
-<div align="center">
-  <a href="https://youtu.be/xggfxybLVHw"><img src="https://img.youtube.com/vi/xggfxybLVHw/maxresdefault.jpg" width="70%"></a>
-</div>
+
 
 ---
 
@@ -472,20 +461,24 @@ const myRouter: GuardClawRouter = {
 
 Edit the Markdown files under `extensions/guardclaw/prompts/` to adjust behavior — no code changes needed:
 
+
 | File                    | Purpose                        |
 | ----------------------- | ------------------------------ |
 | `detection-system.md`   | S1/S2/S3 classification rules  |
 | `guard-agent-system.md` | Guard Agent behavior           |
 | `token-saver-judge.md`  | Task complexity classification |
 
+
 ### Provider Preset Quick Switch
 
 Built-in presets allow one-click switching between local model + cloud model combinations:
+
 
 | Preset          | Local Model         | Cloud Model        | Use Case                                      |
 | --------------- | ------------------- | ------------------ | --------------------------------------------- |
 | `vllm-qwen35`   | vLLM / Qwen 3.5-35B | Same (fully local) | Full local deployment, maximum privacy        |
 | `minimax-cloud` | vLLM / Qwen 3.5-35B | MiniMax M2.5       | Local privacy detection + cloud primary model |
+
 
 Custom presets for Ollama, LMStudio, SGLang, and other backends are also supported.
 
