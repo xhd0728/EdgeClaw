@@ -54,6 +54,14 @@ EdgeClaw is an **Edge-Cloud Collaborative AI Agent** jointly developed by [THUNL
 
 ---
 
+## 🎬 Demo
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/ae4a70a2-ac74-4a07-8537-c370f13c8739" width="70%" controls></video>
+</div>
+
+---
+
 ## 📦 Quick Start
 
 ### 1. Build
