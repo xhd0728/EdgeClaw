@@ -1,10 +1,8 @@
 
-
 ### Secure · Cost-Effective · Efficient
 
 Edge-Cloud Collaborative AI Agent  
 **EdgeClaw**: Keep sensitive data off the cloud, let cheap models handle 80% of requests
-
 
 
 【**[中文](./readme_zh.md)** | English】
@@ -141,11 +139,11 @@ The cloud model **never sees** `MEMORY-FULL.md` or `sessions/full/` — the Hook
 
 **Theorem 1 (Cloud-Side Invisibility)**: For any S3-level data *x*, its original content is completely invisible to the cloud:
 
-∀ *x*,   Detect(*x*) = S₃  ⟹  *x* ∉ Cloud(*x*)
+∀ *x*,   Detect(*x*) = S₃  ⟹  *x* ∉ Cloud(*x*)
 
 **Theorem 2 (Desensitization Completeness)**: For any S2-level data *x*, the cloud-visible form contains none of the original privacy entity values:
 
-∀ *x*,   Detect(*x*) = S₂  ⟹  ∀ (*ti*, *vi*) ∈ Extract(*x*),   *vi* ∉ Cloud(*x*)
+∀ *x*,   Detect(*x*) = S₂  ⟹  ∀ (*ti*, *vi*) ∈ Extract(*x*),   *vi* ∉ Cloud(*x*)
 
 ---
 

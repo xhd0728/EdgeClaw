@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeTempDir } from "./exec-approvals-test-helpers.js";
 
 const requestJsonlSocketMock = vi.hoisted(() => vi.fn());
@@ -9,21 +9,38 @@ vi.mock("./jsonl-socket.js", () => ({
   requestJsonlSocket: (...args: unknown[]) => requestJsonlSocketMock(...args),
 }));
 
-import {
-  addAllowlistEntry,
-  ensureExecApprovals,
-  mergeExecApprovalsSocketDefaults,
-  normalizeExecApprovals,
-  readExecApprovalsSnapshot,
-  recordAllowlistUse,
-  requestExecApprovalViaSocket,
-  resolveExecApprovalsPath,
-  resolveExecApprovalsSocketPath,
-  type ExecApprovalsFile,
-} from "./exec-approvals.js";
+import type { ExecApprovalsFile } from "./exec-approvals.js";
+
+type ExecApprovalsModule = typeof import("./exec-approvals.js");
+
+let addAllowlistEntry: ExecApprovalsModule["addAllowlistEntry"];
+let addDurableCommandApproval: ExecApprovalsModule["addDurableCommandApproval"];
+let ensureExecApprovals: ExecApprovalsModule["ensureExecApprovals"];
+let mergeExecApprovalsSocketDefaults: ExecApprovalsModule["mergeExecApprovalsSocketDefaults"];
+let normalizeExecApprovals: ExecApprovalsModule["normalizeExecApprovals"];
+let readExecApprovalsSnapshot: ExecApprovalsModule["readExecApprovalsSnapshot"];
+let recordAllowlistUse: ExecApprovalsModule["recordAllowlistUse"];
+let requestExecApprovalViaSocket: ExecApprovalsModule["requestExecApprovalViaSocket"];
+let resolveExecApprovalsPath: ExecApprovalsModule["resolveExecApprovalsPath"];
+let resolveExecApprovalsSocketPath: ExecApprovalsModule["resolveExecApprovalsSocketPath"];
 
 const tempDirs: string[] = [];
 const originalOpenClawHome = process.env.OPENCLAW_HOME;
+
+beforeAll(async () => {
+  ({
+    addAllowlistEntry,
+    addDurableCommandApproval,
+    ensureExecApprovals,
+    mergeExecApprovalsSocketDefaults,
+    normalizeExecApprovals,
+    readExecApprovalsSnapshot,
+    recordAllowlistUse,
+    requestExecApprovalViaSocket,
+    resolveExecApprovalsPath,
+    resolveExecApprovalsSocketPath,
+  } = await import("./exec-approvals.js"));
+});
 
 beforeEach(() => {
   requestJsonlSocketMock.mockReset();
@@ -151,6 +168,65 @@ describe("exec approvals store helpers", () => {
       }),
     ]);
     expect(readApprovalsFile(dir).agents?.worker?.allowlist?.[0]?.id).toMatch(/^[0-9a-f-]{36}$/i);
+  });
+
+  it("persists durable command approvals without storing plaintext command text", () => {
+    const dir = createHomeDir();
+    vi.spyOn(Date, "now").mockReturnValue(321_000);
+
+    const approvals = ensureExecApprovals();
+    addDurableCommandApproval(approvals, "worker", 'printenv API_KEY="secret-value"');
+
+    expect(readApprovalsFile(dir).agents?.worker?.allowlist).toEqual([
+      expect.objectContaining({
+        source: "allow-always",
+        lastUsedAt: 321_000,
+      }),
+    ]);
+    expect(readApprovalsFile(dir).agents?.worker?.allowlist?.[0]?.pattern).toMatch(
+      /^=command:[0-9a-f]{16}$/i,
+    );
+    expect(readApprovalsFile(dir).agents?.worker?.allowlist?.[0]).not.toHaveProperty("commandText");
+  });
+
+  it("strips legacy plaintext command text during normalization", () => {
+    expect(
+      normalizeExecApprovals({
+        version: 1,
+        agents: {
+          main: {
+            allowlist: [
+              {
+                pattern: "=command:test",
+                source: "allow-always",
+                commandText: "echo secret-token",
+              },
+            ],
+          },
+        },
+      }).agents?.main?.allowlist,
+    ).toEqual([
+      expect.objectContaining({
+        pattern: "=command:test",
+        source: "allow-always",
+      }),
+    ]);
+    expect(
+      normalizeExecApprovals({
+        version: 1,
+        agents: {
+          main: {
+            allowlist: [
+              {
+                pattern: "=command:test",
+                source: "allow-always",
+                commandText: "echo secret-token",
+              },
+            ],
+          },
+        },
+      }).agents?.main?.allowlist?.[0],
+    ).not.toHaveProperty("commandText");
   });
 
   it("records allowlist usage on the matching entry and backfills missing ids", () => {
