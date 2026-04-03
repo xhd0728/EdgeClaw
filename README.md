@@ -50,6 +50,7 @@ EdgeClaw is an **Edge-Cloud Collaborative AI Agent** jointly developed by [THUNL
 | Sandboxed execution              |    ✗     |          ✓           |                     **✓**                     |
 | Intelligent skill discovery      |    ✗     |          ✗           |                     **✓**                     |
 | Built-in security tool suite     |    ✗     |          △           |                     **✓**                     |
+| Virtual pet companion            |    ✗     |          ✓           |                     **✓**                     |
 | Visual Dashboard                 |    ✗     |          ✗           |                     **✓**                     |
 
 ### ✨ Highlights at a Glance
@@ -62,6 +63,7 @@ EdgeClaw is an **Edge-Cloud Collaborative AI Agent** jointly developed by [THUNL
 - **🔧 Unified Tool Suite** — [ClawXTool](./extensions/clawxtool/): 8-in-1 plugin providing 13 tools, covering **security audit** (bash security analysis, secret scanning), **workflow** (git worktree management, structured task tracking), **development assistance** (cron parsing, notebook editing), and **agent interaction** (memory age annotations, interactive user questions).
 - **🔍 Skill Discovery** — [ClawXSkill](./extensions/clawxskill/): Automatically discovers and indexes agent skills across the workspace using BM25 keyword search, optional embedding-based semantic search, and LLM model judge for intelligent skill matching.
 - **🧠 Memory Engine** — [ClawXMemory](./extensions/openbmb-clawxmemory/): A structured long-term memory engine built for OpenClaw. Building on the ideas behind Claude Code's memory mechanism, it further introduces multi-layered structured memory and model-driven memory retrieval. *(v0.1.5)*
+- **🐾 Virtual Pet Companion** — [ClawXBuddy](./extensions/clawxbuddy/): An adorable ASCII virtual pet companion with idle animations, rarity traits, and interactive commands to keep you company.
 
 **🔥 Other Core Features**
 
@@ -449,6 +451,9 @@ EdgeClaw/
 │   │   ├── watcher.ts                   # File system skill watcher
 │   │   └── skill-backup.ts             # Skill index backup/restore
 │   │
+│   ├── clawxbuddy/                      # [Built-in] ClawXBuddy virtual pet companion
+│   │   └── index.ts                     # Plugin entry point (ASCII sprites, idle animations)
+│   │
 │   ├── guardclaw/                       # [Optional] Privacy guard (excluded from build by default)
 │   │
 │   └── clawxgovernor/                   # [Built-in] ClawXGovernor tool governance
@@ -511,6 +516,7 @@ If this project is helpful to your research or work, please give us a ⭐!
 - [ClawXSandbox](./extensions/ClawXSandbox/) — Lightweight, zero-dependency isolated execution environment based on system-level sandboxing (bwrap / sandbox-exec)
 - [ClawXTool](./extensions/clawxtool/) — Unified 8-in-1 tool suite (cron, bash security, secret scanning, notebooks, git worktrees, tasks, memory age, user questions)
 - [ClawXSkill](./extensions/clawxskill/) — Intelligent skill discovery with BM25 keyword search, embedding-based semantic search, and LLM model judge
+- [ClawXBuddy](./extensions/clawxbuddy/) — Virtual pet companion with ASCII sprites, idle animations, and rarity traits
 
 ### License
 
