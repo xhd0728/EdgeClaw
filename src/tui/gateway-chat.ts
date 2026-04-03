@@ -264,6 +264,10 @@ export class GatewayChatClient {
     return await this.client.request("status");
   }
 
+  async request<T = unknown>(method: string, params?: unknown): Promise<T> {
+    return await this.client.request<T>(method, params);
+  }
+
   async listModels(): Promise<GatewayModelChoice[]> {
     const res = await this.client.request<{ models?: GatewayModelChoice[] }>("models.list");
     return Array.isArray(res?.models) ? res.models : [];
