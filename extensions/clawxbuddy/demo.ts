@@ -1,8 +1,8 @@
 #!/usr/bin/env npx tsx
 /**
  * Quick demo: renders a random buddy companion in the terminal.
- * Run:  npx tsx extensions/edgeclaw-buddy/demo.ts
- *   or: npx tsx extensions/edgeclaw-buddy/demo.ts <seed>
+ * Run:  npx tsx extensions/clawxbuddy/demo.ts
+ *   or: npx tsx extensions/clawxbuddy/demo.ts <seed>
  */
 import { roll, rollWithSeed } from "./src/core/companion.js";
 import { renderFace, renderSprite, spriteFrameCount } from "./src/core/sprites.js";

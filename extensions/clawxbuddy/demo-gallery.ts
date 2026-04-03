@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 /**
  * Gallery: shows companions for multiple seeds.
- * Run: npx tsx extensions/edgeclaw-buddy/demo-gallery.ts
+ * Run: npx tsx extensions/clawxbuddy/demo-gallery.ts
  */
 import { roll } from "./src/core/companion.js";
 import { renderFace, renderSprite } from "./src/core/sprites.js";

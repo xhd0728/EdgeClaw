@@ -19,9 +19,7 @@ Edge-Cloud Collaborative AI Agent
 
 **What's New** 🔥
 
-- **[2026.04.03]** 🔧 [ClawXTool](./extensions/clawxtool/) released — Unified 8-in-1 tool suite (cron parsing, bash security analysis, secret scanning, notebook editing, git worktrees, task management, memory age annotations, structured user questions)
-- **[2026.04.03]** 🔍 [ClawXSkill](./extensions/clawxskill/) released — Intelligent skill discovery engine with BM25 keyword search, optional embedding-based semantic search, and LLM model judge
-- **[2026.04.03]** 🧠 [ClawXMemory](./extensions/openbmb-clawxmemory/) upgraded to v0.1.5 — Refactored retrieval reasoning loop, improved dream-review, new message-utils and prompt-section modules
+- **[2026.04.03]** 🚀 Three Claude Code-liked features released: 🔧 [ClawXTool](./extensions/clawxtool/) launches an 8-in-1 tool suite (including security analysis, secret scanning, git worktrees, etc.), 🔍 [ClawXSkill](./extensions/clawxskill/) releases an intelligent discovery engine (supporting skill search and model judge), and 🧠 [ClawXMemory](./extensions/openbmb-clawxmemory/) v0.1.5 refactors the retrieval loop and improves the dream-review mechanism.
 - **[2026.04.02]** 🚀 Released three Claude Code-liked features optimized for OpenClaw — 🤖 [ClawXKairos](./extensions/clawxkairos/) (Self-Driven Agent Loop), 🛡️ [ClawXGovernor](./extensions/clawxgovernor/) (Tool Governance), and 📦 [ClawXSandbox](./extensions/ClawXSandbox/) (Claude Code-Style Sandbox)
 - **[2026.04.01]** 🎉 EdgeClaw 2.0 is officially open-sourced, featuring a brand-new memory engine and cost-saving router — bringing the Claude Code experience to OpenClaw!
 - **[2026.04.01]** 🎉 [ClawXMemory](https://github.com/OpenBMB/ClawXMemory) released — inspired by Claude Code's memory mechanism, it delivers a smoother experience for OpenClaw scenarios with multi-layered structured long-term memory and proactive reasoning!
@@ -61,13 +59,13 @@ EdgeClaw is an **Edge-Cloud Collaborative AI Agent** jointly developed by [THUNL
 - **🤖 Self-Driven Loop** — [ClawXKairos](./extensions/clawxkairos/): Tick scheduling + Sleep tool + background command automation + async sub-agents, enabling the agent to work autonomously and continuously
 - **🛡️ Tool Governance** — [ClawXGovernor](./extensions/clawxgovernor/): Three hook middlewares — context tail-window trimming, tool call risk interception & audit, session note incremental append. Deeply optimized for OpenClaw scenarios, **saving 85% tokens over 30 rounds of calls**
 - **📦 Sandbox Execution** — [ClawXSandbox](./extensions/ClawXSandbox/): Fully isolated local execution environment based on system-level sandboxing (bwrap / sandbox-exec). Focused on being **lightweight, fast, and zero-dependency**, completely eliminating all Docker overhead.
+- **🔧 Unified Tool Suite** — [ClawXTool](./extensions/clawxtool/): 8-in-1 plugin providing 13 tools, covering **security audit** (bash security analysis, secret scanning), **workflow** (git worktree management, structured task tracking), **development assistance** (cron parsing, notebook editing), and **agent interaction** (memory age annotations, interactive user questions).
+- **🔍 Skill Discovery** — [ClawXSkill](./extensions/clawxskill/): Automatically discovers and indexes agent skills across the workspace using BM25 keyword search, optional embedding-based semantic search, and LLM model judge for intelligent skill matching.
+- **🧠 Memory Engine** — [ClawXMemory](./extensions/openbmb-clawxmemory/): A structured long-term memory engine built for OpenClaw. Building on the ideas behind Claude Code's memory mechanism, it further introduces multi-layered structured memory and model-driven memory retrieval. *(v0.1.5)*
 
 **🔥 Other Core Features**
 
-- **🧠 Memory Engine** — [ClawXMemory](./extensions/openbmb-clawxmemory/): A structured long-term memory engine built for OpenClaw. Building on the ideas behind Claude Code's memory mechanism, it further introduces multi-layered structured memory and model-driven memory retrieval. *(v0.1.5)*
 - **💰 Cost-Saving Router** — [ClawXRouter](https://github.com/openbmb/clawxrouter): LLM-as-Judge automatically determines complexity, routing 60–80% of requests to cheaper models. Real-world PinchBench testing shows **58% cost savings** with scores **6.3% higher**.
-- **🔧 Unified Tool Suite** — [ClawXTool](./extensions/clawxtool/): 8-in-1 plugin providing 13 tools — cron parsing, bash security analysis, secret scanning, notebook editing, git worktree management, structured task tracking, memory age annotations, and interactive user questions.
-- **🔍 Skill Discovery** — [ClawXSkill](./extensions/clawxskill/): Automatically discovers and indexes agent skills across the workspace using BM25 keyword search, optional embedding-based semantic search, and LLM model judge for intelligent skill matching.
 - **🔒 Three-Tier Privacy** — S1 direct cloud / S2 desensitized forwarding / S3 fully local processing — sensitive data never leaves the device.
 - **🚀 Zero Configuration** — `pnpm build && node openclaw.mjs gateway run`, auto-generates config on first launch, just fill in your API Key.
 - **📊 Dual Dashboard** — ClawXRouter routing config hot-reload + ClawXMemory memory canvas visualization.

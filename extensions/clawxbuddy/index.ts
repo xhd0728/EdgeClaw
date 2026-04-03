@@ -52,7 +52,7 @@ function saveState(state: BuddyState): void {
 }
 
 export default definePluginEntry({
-  id: "edgeclaw-buddy",
+  id: "clawxbuddy",
   name: "EdgeClaw Buddy",
   description: "Virtual pet companion with ASCII sprites, idle animations, and rarity traits",
 
