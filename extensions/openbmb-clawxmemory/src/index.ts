@@ -1,8 +1,8 @@
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
+import { pluginConfigJsonSchema, pluginConfigUiHints } from "./config.js";
 import { registerMemoryHooks } from "./hooks.js";
 import { buildMemoryPromptSection } from "./prompt-section.js";
 import { MemoryPluginRuntime } from "./runtime.js";
-import { pluginConfigJsonSchema, pluginConfigUiHints } from "./config.js";
 
 const plugin = definePluginEntry({
   id: "openbmb-clawxmemory",
@@ -15,6 +15,10 @@ const plugin = definePluginEntry({
   },
 
   register(api): void {
+    if (api.registrationMode !== "full") {
+      return;
+    }
+
     const runtime = new MemoryPluginRuntime({
       apiConfig: api.config,
       pluginRuntime: api.runtime,

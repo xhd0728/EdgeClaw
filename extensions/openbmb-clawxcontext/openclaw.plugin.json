@@ -1,0 +1,71 @@
+{
+  "id": "openbmb-clawxcontext",
+  "name": "ClawXContext",
+  "description": "OpenClaw context engine focused on long-session stability and smoother compaction.",
+  "version": "0.1.0",
+  "kind": "context-engine",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "dataDir": {
+        "type": "string",
+        "description": "Base directory used to persist ClawXContext state."
+      },
+      "protectedRecentTurns": {
+        "type": "integer",
+        "default": 6
+      },
+      "snipEnabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "microcompactEnabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "autoCompactEnabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "autoCompactReserveTokens": {
+        "type": "integer",
+        "default": 13000
+      },
+      "reinjectSummary": {
+        "type": "boolean",
+        "default": true
+      },
+      "reinjectRecentFiles": {
+        "type": "integer",
+        "default": 5
+      },
+      "reinjectCriticalToolOutputs": {
+        "type": "integer",
+        "default": 5
+      }
+    }
+  },
+  "uiHints": {
+    "dataDir": {
+      "label": "Data Directory",
+      "placeholder": "~/.openclaw/clawxcontext"
+    },
+    "protectedRecentTurns": {
+      "label": "Protected Recent Turns",
+      "placeholder": "6"
+    },
+    "autoCompactReserveTokens": {
+      "label": "Auto Compact Reserve Tokens",
+      "placeholder": "13000"
+    },
+    "reinjectRecentFiles": {
+      "label": "Reinject Recent Files",
+      "placeholder": "5"
+    },
+    "reinjectCriticalToolOutputs": {
+      "label": "Reinject Critical Tool Outputs",
+      "placeholder": "5"
+    }
+  }
+}

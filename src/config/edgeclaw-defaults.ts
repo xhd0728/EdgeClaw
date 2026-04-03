@@ -11,9 +11,10 @@ import type { OpenClawConfig } from "./types.js";
  * export one variable before running the gateway.
  *
  * ClawXRouter is pre-configured for token-saver-only mode (privacy
- * router disabled). ClawXMemory is enabled as the memory slot.
- * ClawXGovernor is enabled for tool governance, context management,
- * and session memory; its MCP server is auto-configured when bundled.
+ * router disabled). ClawXMemory is enabled as the memory slot and
+ * ClawXContext is enabled as the context-engine slot.
+ * ClawXGovernor is enabled for tool governance and session memory;
+ * its MCP server is auto-configured when bundled.
  */
 export function generateEdgeClawDefaults(env: NodeJS.ProcessEnv = process.env): OpenClawConfig {
   const stateDir = resolveStateDir(env);
@@ -183,6 +184,7 @@ export function generateEdgeClawDefaults(env: NodeJS.ProcessEnv = process.env): 
       allow: [
         "ClawXRouter",
         "openbmb-clawxmemory",
+        "openbmb-clawxcontext",
         "clawxgovernor",
         "clawxkairos",
         "clawxtool",
@@ -234,6 +236,12 @@ export function generateEdgeClawDefaults(env: NodeJS.ProcessEnv = process.env): 
             dataDir: path.join(stateDir, "clawxmemory"),
           },
         },
+        "openbmb-clawxcontext": {
+          enabled: true,
+          config: {
+            dataDir: path.join(stateDir, "clawxcontext"),
+          },
+        },
         clawxgovernor: {
           enabled: true,
           hooks: { allowPromptInjection: true },
@@ -262,13 +270,18 @@ export function generateEdgeClawDefaults(env: NodeJS.ProcessEnv = process.env): 
         clawxbuddy: { enabled: true, config: {} },
         "memory-core": { enabled: false },
       },
-      slots: { memory: "openbmb-clawxmemory" },
+      slots: {
+        memory: "openbmb-clawxmemory",
+        contextEngine: "openbmb-clawxcontext",
+      },
     },
     tools: {
       alsoAllow: [
         "memory_overview",
         "memory_list",
         "memory_flush",
+        "context_inspect",
+        "context_suggest",
         "clawxgovernor__context_inspect",
         "clawxgovernor__context_budget_check",
         "clawxgovernor__context_force_compact",

@@ -95,6 +95,10 @@ export default definePluginEntry({
   configSchema: clawXrouterConfigSchema,
 
   register(api: OpenClawPluginApi) {
+    if (api.registrationMode !== "full") {
+      return;
+    }
+
     // ── Resolve config: clawxrouter.json > (openclaw.json + legacy overrides) ──
     let resolvedPluginConfig: Record<string, unknown>;
     const fileConfig = loadClawXrouterConfigFile();
