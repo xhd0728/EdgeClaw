@@ -19,6 +19,7 @@ Edge-Cloud Collaborative AI Agent
 
 **What's New** 🔥
 
+- **[2026.04.03]** 🚀 Three Claude Code-liked features released: 🔧 [ClawXTool](./extensions/clawxtool/) launches an 8-in-1 tool suite (including security analysis, secret scanning, git worktrees, etc.), 🔍 [ClawXSkill](./extensions/clawxskill/) releases an intelligent discovery engine (supporting skill search and model judge), and 🧠 [ClawXMemory](./extensions/openbmb-clawxmemory/) v0.1.5 refactors the retrieval loop and improves the dream-review mechanism.
 - **[2026.04.02]** 🚀 Released three Claude Code-liked features optimized for OpenClaw — 🤖 [ClawXKairos](./extensions/clawxkairos/) (Self-Driven Agent Loop), 🛡️ [ClawXGovernor](./extensions/clawxgovernor/) (Tool Governance), and 📦 [ClawXSandbox](./extensions/ClawXSandbox/) (Claude Code-Style Sandbox)
 - **[2026.04.01]** 🎉 EdgeClaw 2.0 is officially open-sourced, featuring a brand-new memory engine and cost-saving router — bringing the Claude Code experience to OpenClaw!
 - **[2026.04.01]** 🎉 [ClawXMemory](https://github.com/OpenBMB/ClawXMemory) released — inspired by Claude Code's memory mechanism, it delivers a smoother experience for OpenClaw scenarios with multi-layered structured long-term memory and proactive reasoning!
@@ -47,6 +48,9 @@ EdgeClaw is an **Edge-Cloud Collaborative AI Agent** jointly developed by [THUNL
 | Tool risk governance & audit     |    ✗     |          ✓           |                     **✓**                     |
 | Self-driven agent loop           |    ✗     |          ✓           |                     **✓**                     |
 | Sandboxed execution              |    ✗     |          ✓           |                     **✓**                     |
+| Intelligent skill discovery      |    ✗     |          ✗           |                     **✓**                     |
+| Built-in security tool suite     |    ✗     |          △           |                     **✓**                     |
+| Virtual pet companion            |    ✗     |          ✓           |                     **✓**                     |
 | Visual Dashboard                 |    ✗     |          ✗           |                     **✓**                     |
 
 ### ✨ Highlights at a Glance
@@ -56,10 +60,13 @@ EdgeClaw is an **Edge-Cloud Collaborative AI Agent** jointly developed by [THUNL
 - **🤖 Self-Driven Loop** — [ClawXKairos](./extensions/clawxkairos/): Tick scheduling + Sleep tool + background command automation + async sub-agents, enabling the agent to work autonomously and continuously
 - **🛡️ Tool Governance** — [ClawXGovernor](./extensions/clawxgovernor/): Three hook middlewares — context tail-window trimming, tool call risk interception & audit, session note incremental append. Deeply optimized for OpenClaw scenarios, **saving 85% tokens over 30 rounds of calls**
 - **📦 Sandbox Execution** — [ClawXSandbox](./extensions/ClawXSandbox/): Fully isolated local execution environment based on system-level sandboxing (bwrap / sandbox-exec). Focused on being **lightweight, fast, and zero-dependency**, completely eliminating all Docker overhead.
+- **🔧 Unified Tool Suite** — [ClawXTool](./extensions/clawxtool/): 8-in-1 plugin providing 13 tools, covering **security audit** (bash security analysis, secret scanning), **workflow** (git worktree management, structured task tracking), **development assistance** (cron parsing, notebook editing), and **agent interaction** (memory age annotations, interactive user questions).
+- **🔍 Skill Discovery** — [ClawXSkill](./extensions/clawxskill/): Automatically discovers and indexes agent skills across the workspace using BM25 keyword search, optional embedding-based semantic search, and LLM model judge for intelligent skill matching.
+- **🧠 Memory Engine** — [ClawXMemory](./extensions/openbmb-clawxmemory/): A structured long-term memory engine built for OpenClaw. Building on the ideas behind Claude Code's memory mechanism, it further introduces multi-layered structured memory and model-driven memory retrieval. *(v0.1.5)*
+- **🐾 Virtual Pet Companion** — [ClawXBuddy](./extensions/clawxbuddy/): An adorable ASCII virtual pet companion with idle animations, rarity traits, and interactive commands to keep you company.
 
 **🔥 Other Core Features**
 
-- **🧠 Memory Engine** — [ClawXMemory](https://github.com/OpenBMB/ClawXMemory): A structured long-term memory engine built for OpenClaw. Building on the ideas behind Claude Code's memory mechanism, it further introduces multi-layered structured memory and model-driven memory retrieval.
 - **💰 Cost-Saving Router** — [ClawXRouter](https://github.com/openbmb/clawxrouter): LLM-as-Judge automatically determines complexity, routing 60–80% of requests to cheaper models. Real-world PinchBench testing shows **58% cost savings** with scores **6.3% higher**.
 - **🔒 Three-Tier Privacy** — S1 direct cloud / S2 desensitized forwarding / S3 fully local processing — sensitive data never leaves the device.
 - **🚀 Zero Configuration** — `pnpm build && node openclaw.mjs gateway run`, auto-generates config on first launch, just fill in your API Key.
@@ -423,6 +430,30 @@ EdgeClaw/
 │   │       ├── fs-bridge.ts           # File system bridge
 │   │       └── config.ts             # Sandbox configuration
 │   │
+│   ├── clawxtool/                       # [Built-in] ClawXTool unified tool suite (8-in-1)
+│   │   ├── index.ts                     # Unified entry (13 tools + hooks)
+│   │   └── src/                         # Tool logic modules
+│   │       ├── cron-parser.ts           # Cron expression parsing
+│   │       ├── classifier.ts            # Bash command security classification
+│   │       ├── secret-patterns.ts       # Secret/key detection patterns
+│   │       ├── notebook.ts              # Jupyter notebook read/edit
+│   │       ├── worktree.ts              # Git worktree management
+│   │       ├── store.ts                 # Task persistence store
+│   │       ├── annotate.ts              # Memory age freshness labels
+│   │       └── question-tool.ts         # Structured multi-choice questions
+│   │
+│   ├── clawxskill/                      # [Built-in] ClawXSkill intelligent skill discovery
+│   │   ├── index.ts                     # Plugin entry point
+│   │   ├── engines/
+│   │   │   ├── inverted-index.ts        # BM25 keyword search engine
+│   │   │   ├── embedding-search.ts      # Semantic embedding search
+│   │   │   └── model-judge.ts           # LLM-based skill relevance judge
+│   │   ├── watcher.ts                   # File system skill watcher
+│   │   └── skill-backup.ts             # Skill index backup/restore
+│   │
+│   ├── clawxbuddy/                      # [Built-in] ClawXBuddy virtual pet companion
+│   │   └── index.ts                     # Plugin entry point (ASCII sprites, idle animations)
+│   │
 │   ├── guardclaw/                       # [Optional] Privacy guard (excluded from build by default)
 │   │
 │   └── clawxgovernor/                   # [Built-in] ClawXGovernor tool governance
@@ -483,6 +514,9 @@ If this project is helpful to your research or work, please give us a ⭐!
 - [ClawXGovernor](./extensions/clawxgovernor/) — Tool governance (context trimming + tool call interception & audit + session notes), EdgeClaw built-in extension
 - [ClawXKairos](./extensions/clawxkairos/) — Self-driven agent loop (tick scheduling + sleep + background commands + async sub-agents)
 - [ClawXSandbox](./extensions/ClawXSandbox/) — Lightweight, zero-dependency isolated execution environment based on system-level sandboxing (bwrap / sandbox-exec)
+- [ClawXTool](./extensions/clawxtool/) — Unified 8-in-1 tool suite (cron, bash security, secret scanning, notebooks, git worktrees, tasks, memory age, user questions)
+- [ClawXSkill](./extensions/clawxskill/) — Intelligent skill discovery with BM25 keyword search, embedding-based semantic search, and LLM model judge
+- [ClawXBuddy](./extensions/clawxbuddy/) — Virtual pet companion with ASCII sprites, idle animations, and rarity traits
 
 ### License
 

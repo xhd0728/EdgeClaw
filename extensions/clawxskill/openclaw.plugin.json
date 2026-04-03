@@ -1,0 +1,10 @@
+{
+  "id": "clawxskill",
+  "name": "ClawX Skill Discovery",
+  "description": "Skill discovery engine with inverted-index, embedding search, and model-judge.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {}
+  }
+}

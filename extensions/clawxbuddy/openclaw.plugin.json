@@ -1,0 +1,21 @@
+{
+  "id": "clawxbuddy",
+  "name": "EdgeClaw Buddy",
+  "description": "Virtual pet companion: ASCII sprite with idle animations, speech bubbles, and rarity-based traits.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "userId": {
+        "type": "string",
+        "default": ""
+      }
+    }
+  },
+  "uiHints": {
+    "userId": {
+      "label": "User ID",
+      "help": "Used as seed for deterministic companion appearance. Leave empty for auto-detect."
+    }
+  }
+}

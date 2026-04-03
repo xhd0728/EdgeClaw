@@ -119,6 +119,11 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     { name: "settings", description: "Open settings" },
     { name: "exit", description: "Exit the TUI" },
     { name: "quit", description: "Exit the TUI" },
+    {
+      name: "buddy",
+      description: "View or interact with your companion pet",
+      getArgumentCompletions: createLevelCompletion(["hatch", "pet", "stats", "mute"]),
+    },
   ];
 
   const seen = new Set(commands.map((command) => command.name));
@@ -159,6 +164,7 @@ export function helpText(options: SlashCommandOptions = {}): string {
     "/new or /reset",
     "/abort",
     "/settings",
+    "/buddy <hatch|pet|stats|mute>",
     "/exit",
   ].join("\n");
 }
