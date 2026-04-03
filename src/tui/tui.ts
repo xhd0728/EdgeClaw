@@ -17,6 +17,7 @@ import {
   parseAgentSessionKey,
 } from "../routing/session-key.js";
 import { getSlashCommands } from "./commands.js";
+import { BuddySpriteComponent, type BuddySpriteState } from "./components/buddy-sprite.js";
 import { ChatLog } from "./components/chat-log.js";
 import { CustomEditor } from "./components/custom-editor.js";
 import { GatewayChatClient } from "./gateway-chat.js";
@@ -412,6 +413,7 @@ export async function runTui(opts: TuiOptions) {
   });
   const header = new Text("", 1, 0);
   const statusContainer = new Container();
+  const buddySprite = new BuddySpriteComponent();
   const footer = new Text("", 1, 0);
   const chatLog = new ChatLog();
   const editor = new CustomEditor(tui, editorTheme);
@@ -419,8 +421,11 @@ export async function runTui(opts: TuiOptions) {
   root.addChild(header);
   root.addChild(chatLog);
   root.addChild(statusContainer);
+  root.addChild(buddySprite);
   root.addChild(footer);
   root.addChild(editor);
+
+  buddySprite.setRenderCallback(() => tui.requestRender());
 
   const updateAutocompleteProvider = () => {
     editor.setAutocompleteProvider(
@@ -770,9 +775,18 @@ export async function runTui(opts: TuiOptions) {
     closeOverlay,
   });
   updateAutocompleteProvider();
+  const wrappedHandleCommand = async (raw: string) => {
+    const lower = raw.trim().toLowerCase();
+    if (lower === "/buddy pet" || lower.startsWith("/buddy pet ")) {
+      buddySprite.triggerPet();
+      tui.requestRender();
+    }
+    return handleCommand(raw);
+  };
+
   const submitHandler = createEditorSubmitHandler({
     editor,
-    handleCommand,
+    handleCommand: wrappedHandleCommand,
     sendMessage,
     handleBangLine: runLocalShellLine,
   });
@@ -861,6 +875,17 @@ export async function runTui(opts: TuiOptions) {
     if (evt.event === "agent") {
       handleAgentEvent(evt.payload);
     }
+    if (evt.event === "buddy.reaction") {
+      const payload = evt.payload as { text?: string } | undefined;
+      if (payload?.text) {
+        buddySprite.showReaction(payload.text);
+        tui.requestRender();
+      }
+    }
+    if (evt.event === "buddy.pet") {
+      buddySprite.triggerPet();
+      tui.requestRender();
+    }
   };
 
   client.onConnected = () => {
@@ -881,6 +906,56 @@ export async function runTui(opts: TuiOptions) {
       }
       updateFooter();
       tui.requestRender();
+
+      // Load buddy companion if available
+      try {
+        const buddyResult = (await client.request("buddy.get", {})) as {
+          hatched?: boolean;
+          companion?: BuddySpriteState & { sprite: string[] };
+          preview?: { species: string; rarity: string; face: string; sprite: string[] };
+        };
+        if (buddyResult?.hatched && buddyResult.companion) {
+          const c = buddyResult.companion;
+          const buddyEye = "◉";
+          buddySprite.setCompanion({
+            name: c.name ?? "???",
+            species: c.species ?? "blob",
+            rarity: c.rarity ?? "common",
+            stars: c.stars ?? "★",
+            shiny: c.shiny ?? false,
+            eye: buddyEye,
+            spriteFrames: [c.sprite].map((f) => f.map((l) => l.replaceAll(c.eye ?? "·", buddyEye))),
+            face: c.face?.replaceAll(c.eye ?? "·", buddyEye) ?? "(◉◉)",
+          });
+          const frames: string[][] = [c.sprite];
+          for (let f = 1; f < 3; f++) {
+            try {
+              const frameResult = (await client.request("buddy.sprite", { frame: f })) as {
+                sprite?: string[];
+              };
+              if (frameResult?.sprite) {
+                frames.push(frameResult.sprite);
+              }
+            } catch {
+              frames.push(c.sprite);
+            }
+          }
+          buddySprite.setCompanion({
+            name: c.name ?? "???",
+            species: c.species ?? "blob",
+            rarity: c.rarity ?? "common",
+            stars: c.stars ?? "★",
+            shiny: c.shiny ?? false,
+            eye: buddyEye,
+            spriteFrames: frames.map((f) => f.map((l) => l.replaceAll(c.eye ?? "·", buddyEye))),
+            face: c.face?.replaceAll(c.eye ?? "·", buddyEye) ?? "(◉◉)",
+          });
+          buddySprite.startAnimation();
+          tui.requestRender();
+        }
+      } catch {
+        // buddy plugin not loaded or not available -- silently ignore
+      }
     })();
   };
 

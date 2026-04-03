@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Buddy Zoo — All Companions</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1b26;
+    color: #c0caf5;
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    color: #7aa2f7;
+    letter-spacing: 2px;
+  }
+  .controls {
+    text-align: center;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .controls label { color: #565f89; font-size: 0.85rem; }
+  .controls select, .controls input[type=range] {
+    background: #24283b;
+    color: #c0caf5;
+    border: 1px solid #3b4261;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: inherit;
+    font-size: 0.85rem;
+  }
+  .controls input[type=range] { width: 100px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #24283b;
+    border: 1px solid #3b4261;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .card:hover {
+    border-color: #7aa2f7;
+    box-shadow: 0 0 12px rgba(122,162,247,0.2);
+  }
+  .card.shiny { border-color: #e0af68; box-shadow: 0 0 16px rgba(224,175,104,0.3); }
+  .card .sprite {
+    white-space: pre;
+    font-size: 14px;
+    line-height: 1.25;
+    min-height: 5.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card .name {
+    margin-top: 6px;
+    font-weight: bold;
+    font-size: 0.95rem;
+  }
+  .card .meta {
+    font-size: 0.75rem;
+    color: #565f89;
+    margin-top: 2px;
+  }
+  .rarity-common { color: #565f89; }
+  .rarity-uncommon { color: #9ece6a; }
+  .rarity-rare { color: #7aa2f7; }
+  .rarity-epic { color: #bb9af7; }
+  .rarity-legendary { color: #e0af68; }
+  .blink { opacity: 0; animation: blinker 0.15s; }
+  .hearts {
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #f7768e;
+    font-size: 12px;
+    pointer-events: none;
+    white-space: pre;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card.petting .hearts { opacity: 1; }
+  @keyframes blinker { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="controls">
+  <label>Eye: <select id="eyePicker">
+    <option value="◉">◉</option>
+    <option value="·">·</option>
+    <option value="✦">✦</option>
+    <option value="×">×</option>
+    <option value="@">@</option>
+    <option value="°">°</option>
+  </select></label>
+  <label>Speed: <input type="range" id="speed" min="50" max="1000" value="150" step="50"></label>
+  <label id="speedLabel">150ms</label>
+</div>
+<h1>🐾 Buddy Zoo</h1>
+<div class="grid" id="grid"></div>
+
+<script>
+const BODIES={duck:[[`            `,`    __      `,`  <({E} )___  `,`   (  ._>   `,`    \`--´    `],[`            `,`    __      `,`  <({E} )___  `,`   (  ._>   `,`    \`--´~   `],[`            `,`    __      `,`  <({E} )___  `,`   (  .__>  `,`    \`--´    `]],goose:[[`            `,`     ({E}>    `,`     ||     `,`   _(__)_   `,`    ^^^^    `],[`            `,`    ({E}>     `,`     ||     `,`   _(__)_   `,`    ^^^^    `],[`            `,`     ({E}>>   `,`     ||     `,`   _(__)_   `,`    ^^^^    `]],blob:[[`            `,`   .----.   `,`  ( {E}  {E} )  `,`  (      )  `,`   \`----´   `],[`            `,`  .------.  `,` (  {E}  {E}  ) `,` (        ) `,`  \`------´  `],[`            `,`    .--.    `,`   ({E}  {E})   `,`   (    )   `,`    \`--´    `]],cat:[[`            `,`   /\\_/\\    `,`  ( {E}   {E})  `,`  (  ω  )   `,`  (")_(")   `],[`            `,`   /\\_/\\    `,`  ( {E}   {E})  `,`  (  ω  )   `,`  (")_(")~  `],[`            `,`   /\\-/\\    `,`  ( {E}   {E})  `,`  (  ω  )   `,`  (")_(")   `]],dragon:[[`            `,`  /^\\  /^\\  `,` <  {E}  {E}  > `,` (   ~~   ) `,`  \`-vvvv-´  `],[`            `,`  /^\\  /^\\  `,` <  {E}  {E}  > `,` (        ) `,`  \`-vvvv-´  `],[`   ~    ~   `,`  /^\\  /^\\  `,` <  {E}  {E}  > `,` (   ~~   ) `,`  \`-vvvv-´  `]],octopus:[[`            `,`   .----.   `,`  ( {E}  {E} )  `,`  (______)  `,`  /\\/\\/\\/\\  `],[`            `,`   .----.   `,`  ( {E}  {E} )  `,`  (______)  `,`  \\/\\/\\/\\/  `],[`     o      `,`   .----.   `,`  ( {E}  {E} )  `,`  (______)  `,`  /\\/\\/\\/\\  `]],owl:[[`            `,`   /\\  /\\   `,`  (({E})({E}))  `,`  (  ><  )  `,`   \`----´   `],[`            `,`   /\\  /\\   `,`  (({E})({E}))  `,`  (  ><  )  `,`   .----.   `],[`            `,`   /\\  /\\   `,`  (({E})(-))  `,`  (  ><  )  `,`   \`----´   `]],penguin:[[`            `,`  .---.     `,`  ({E}>{E})     `,` /(   )\\    `,`  \`---´     `],[`            `,`  .---.     `,`  ({E}>{E})     `,` |(   )|    `,`  \`---´     `],[`  .---.     `,`  ({E}>{E})     `,` /(   )\\    `,`  \`---´     `,`   ~ ~      `]],turtle:[[`            `,`   _,--._   `,`  ( {E}  {E} )  `,` /[______]\\ `,`  \`\`    \`\`  `],[`            `,`   _,--._   `,`  ( {E}  {E} )  `,` /[______]\\ `,`   \`\`  \`\`   `],[`            `,`   _,--._   `,`  ( {E}  {E} )  `,` /[======]\\ `,`  \`\`    \`\`  `]],snail:[[`            `,` {E}    .--.  `,`  \\  ( @ )  `,`   \\_\`--´   `,`  ~~~~~~~   `],[`            `,`  {E}   .--.  `,`  |  ( @ )  `,`   \\_\`--´   `,`  ~~~~~~~   `],[`            `,` {E}    .--.  `,`  \\  ( @  ) `,`   \\_\`--´   `,`   ~~~~~~   `]],ghost:[[`            `,`   .----.   `,`  / {E}  {E} \\  `,`  |      |  `,`  ~\`~\`\`~\`~  `],[`            `,`   .----.   `,`  / {E}  {E} \\  `,`  |      |  `,`  \`~\`~~\`~\`  `],[`    ~  ~    `,`   .----.   `,`  / {E}  {E} \\  `,`  |      |  `,`  ~~\`~~\`~~  `]],axolotl:[[`            `,`}~(______)~{`,`}~({E} .. {E})~{`,`  ( .--. )  `,`  (_/  \\_)  `],[`            `,`~}(______){~`,`~}({E} .. {E}){~`,`  ( .--. )  `,`  (_/  \\_)  `],[`            `,`}~(______)~{`,`}~({E} .. {E})~{`,`  (  --  )  `,`  ~_/  \\_~  `]],capybara:[[`            `,`  n______n  `,` ( {E}    {E} ) `,` (   oo   ) `,`  \`------´  `],[`            `,`  n______n  `,` ( {E}    {E} ) `,` (   Oo   ) `,`  \`------´  `],[`    ~  ~    `,`  u______n  `,` ( {E}    {E} ) `,` (   oo   ) `,`  \`------´  `]],cactus:[[`            `,` n  ____  n `,` | |{E}  {E}| | `,` |_|    |_| `,`   |    |   `],[`            `,`    ____    `,` n |{E}  {E}| n `,` |_|    |_| `,`   |    |   `],[` n        n `,` |  ____  | `,` | |{E}  {E}| | `,` |_|    |_| `,`   |    |   `]],robot:[[`            `,`   .[||].   `,`  [ {E}  {E} ]  `,`  [ ==== ]  `,`  \`------´  `],[`            `,`   .[||].   `,`  [ {E}  {E} ]  `,`  [ -==- ]  `,`  \`------´  `],[`     *      `,`   .[||].   `,`  [ {E}  {E} ]  `,`  [ ==== ]  `,`  \`------´  `]],rabbit:[[`            `,`   (\\__/)   `,`  ( {E}  {E} )  `,` =(  ..  )= `,`  (")__(")  `],[`            `,`   (|__/)   `,`  ( {E}  {E} )  `,` =(  ..  )= `,`  (")__(")  `],[`            `,`   (\\__/)   `,`  ( {E}  {E} )  `,` =( .  . )= `,`  (")__(")  `]],mushroom:[[`            `,` .-o-OO-o-. `,`(__________)`,`   |{E}  {E}|   `,`   |____|   `],[`            `,` .-O-oo-O-. `,`(__________)`,`   |{E}  {E}|   `,`   |____|   `],[`   . o  .   `,` .-o-OO-o-. `,`(__________)`,`   |{E}  {E}|   `,`   |____|   `]],chonk:[[`            `,`  /\\    /\\  `,` ( {E}    {E} ) `,` (   ..   ) `,`  \`------´  `],[`            `,`  /\\    /|  `,` ( {E}    {E} ) `,` (   ..   ) `,`  \`------´  `],[`            `,`  /\\    /\\  `,` ( {E}    {E} ) `,` (   ..   ) `,`  \`------´~ `]]};
+
+const SPECIES=["duck","goose","blob","cat","dragon","octopus","owl","penguin","turtle","snail","ghost","axolotl","capybara","cactus","robot","rabbit","mushroom","chonk"];
+const SPECIES_EMOJI={"duck":"🦆","goose":"🪿","blob":"🫧","cat":"🐱","dragon":"🐉","octopus":"🐙","owl":"🦉","penguin":"🐧","turtle":"🐢","snail":"🐌","ghost":"👻","axolotl":"🦎","capybara":"🦫","cactus":"🌵","robot":"🤖","rabbit":"🐰","mushroom":"🍄","chonk":"😺"};
+const IDLE_SEQ=[0,0,0,0,1,0,0,0,-1,0,0,2,0,0,0];
+const RARITY_COLORS={common:"#565f89",uncommon:"#9ece6a",rare:"#7aa2f7",epic:"#bb9af7",legendary:"#e0af68"};
+const HEART_FRAMES=[`   ♥    ♥   `,`  ♥  ♥   ♥  `,` ♥   ♥  ♥   `,`♥  ♥      ♥ `,`·    ·   ·  `];
+
+function renderSprite(species, eye, frame) {
+  const frames = BODIES[species];
+  const body = frames[frame % frames.length].map(l => l.replaceAll('{E}', eye));
+  const lines = [...body];
+  if (!lines[0].trim() && frames.every(f => !f[0].trim())) lines.shift();
+  return lines;
+}
+
+let eye = '◉';
+let tickMs = 150;
+let tick = 0;
+let timer;
+
+const grid = document.getElementById('grid');
+const eyePicker = document.getElementById('eyePicker');
+const speedSlider = document.getElementById('speed');
+const speedLabel = document.getElementById('speedLabel');
+
+const cards = [];
+
+SPECIES.forEach(sp => {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="hearts">${HEART_FRAMES[0]}</div>
+    <div class="sprite"></div>
+    <div class="name rarity-common">${SPECIES_EMOJI[sp] || ''} ${sp}</div>
+    <div class="meta">click to pet!</div>
+  `;
+  card.addEventListener('click', () => {
+    card.classList.add('petting');
+    card._petTick = tick;
+    setTimeout(() => card.classList.remove('petting'), 2500);
+  });
+  grid.appendChild(card);
+  cards.push({ el: card, species: sp, spriteEl: card.querySelector('.sprite'), heartsEl: card.querySelector('.hearts') });
+});
+
+function render() {
+  tick++;
+  const step = IDLE_SEQ[tick % IDLE_SEQ.length];
+  cards.forEach(c => {
+    const frameCount = BODIES[c.species].length;
+    const petting = c.el.classList.contains('petting');
+    let frame, blink = false;
+    if (petting) {
+      frame = tick % frameCount;
+      const petAge = tick - (c.el._petTick || 0);
+      c.heartsEl.textContent = HEART_FRAMES[petAge % HEART_FRAMES.length];
+    } else {
+      if (step === -1) { frame = 0; blink = true; }
+      else frame = step % frameCount;
+    }
+    let lines = renderSprite(c.species, eye, frame);
+    if (blink) lines = lines.map(l => l.replaceAll(eye, '-'));
+    c.spriteEl.textContent = lines.join('\n');
+  });
+}
+
+function startTimer() {
+  if (timer) clearInterval(timer);
+  timer = setInterval(render, tickMs);
+}
+
+eyePicker.addEventListener('change', e => { eye = e.target.value; render(); });
+speedSlider.addEventListener('input', e => {
+  tickMs = +e.target.value;
+  speedLabel.textContent = tickMs + 'ms';
+  startTimer();
+});
+
+render();
+startTimer();
+</script>
+</body>
+</html>
