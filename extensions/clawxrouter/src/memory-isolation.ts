@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 import { desensitizeWithLocalModel } from "./local-model.js";
 import type { PrivacyConfig } from "./types.js";
 import { redactSensitiveInfo } from "./utils.js";
@@ -10,11 +11,12 @@ export const GUARD_SECTION_END = "<!-- clawxrouter:guard-end -->";
 export class MemoryIsolationManager {
   private workspaceDir: string;
 
-  constructor(workspaceDir: string = "~/.edgeclaw/workspace-main") {
-    // Expand ~ to home directory
-    this.workspaceDir = workspaceDir.startsWith("~")
-      ? path.join(process.env.HOME || process.env.USERPROFILE || "~", workspaceDir.slice(2))
-      : workspaceDir;
+  constructor(workspaceDir?: string) {
+    const resolved = workspaceDir ?? path.join(resolveStateDir(process.env), "workspace-main");
+    // Expand ~ to home directory for explicitly-passed user paths
+    this.workspaceDir = resolved.startsWith("~")
+      ? path.join(process.env.HOME || process.env.USERPROFILE || "~", resolved.slice(2))
+      : resolved;
   }
 
   /**

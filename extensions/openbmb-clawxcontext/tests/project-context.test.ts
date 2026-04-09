@@ -146,7 +146,9 @@ describe("ProjectContextManager", () => {
       persist: true,
     });
 
-    expect(loaded?.systemContext).toContain("User defaults from ~/.edgeclaw/OPENCLAW.md");
+    expect(loaded?.systemContext).toContain(
+      `User defaults from ${path.join(homeDir, ".edgeclaw")}/OPENCLAW.md`,
+    );
     expect(loaded?.systemContext).toContain("Project instructions from OPENCLAW.md");
     expect(loaded?.systemContext).toContain("Local overrides from OPENCLAW.local.md");
     expect(loaded?.systemContext).toContain("Runtime platform:");
@@ -177,7 +179,7 @@ describe("ProjectContextManager", () => {
       ),
     ).toBe(true);
     expect(session.projectContext?.stablePrefixPreview).toContain(
-      "User defaults from ~/.edgeclaw/OPENCLAW.md",
+      `User defaults from ${path.join(homeDir, ".edgeclaw")}/OPENCLAW.md`,
     );
     expect(session.projectContext?.compactInstructionsPreview).toContain("Keep the active task");
     expect(session.projectContext?.gitDiffSummary[0]).toContain("src/index.ts");

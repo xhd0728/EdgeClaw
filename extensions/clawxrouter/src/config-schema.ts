@@ -1,4 +1,6 @@
+import { join } from "node:path";
 import { Type } from "@sinclair/typebox";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
 export const clawXrouterConfigSchema = Type.Object({
   privacy: Type.Optional(
@@ -172,7 +174,7 @@ export const defaultPrivacyConfig = {
   },
   guardAgent: {
     id: "guard",
-    workspace: "~/.edgeclaw/workspace-guard",
+    workspace: join(resolveStateDir(process.env), "workspace-guard"),
     model: "ollama/openbmb/minicpm4.1",
   },
   localProviders: [] as string[],
@@ -199,7 +201,7 @@ export const defaultPrivacyConfig = {
   },
   session: {
     isolateGuardHistory: true,
-    baseDir: "~/.edgeclaw",
+    baseDir: resolveStateDir(process.env),
     injectDualHistory: true,
     historyLimit: 20,
   },

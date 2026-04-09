@@ -125,7 +125,7 @@ describe("ContextPluginRuntime hooks", () => {
     );
 
     expect(promptResult?.prependSystemContext).toContain(
-      "User defaults from ~/.edgeclaw/OPENCLAW.md",
+      `User defaults from ${path.join(homeDir, ".edgeclaw")}/OPENCLAW.md`,
     );
     expect(promptResult?.prependSystemContext).toContain("Project instructions from OPENCLAW.md");
     expect(promptResult?.prependSystemContext).toContain("Runtime platform:");

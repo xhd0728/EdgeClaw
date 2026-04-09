@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 import { isGuardSessionKey } from "./guard-agent.js";
 
 export type SessionMessage = {
@@ -29,11 +30,12 @@ export class DualSessionManager {
     await next;
   }
 
-  constructor(baseDir: string = "~/.edgeclaw") {
-    // Expand ~ to home directory
-    this.baseDir = baseDir.startsWith("~")
-      ? path.join(process.env.HOME || process.env.USERPROFILE || "~", baseDir.slice(2))
-      : baseDir;
+  constructor(baseDir?: string) {
+    const resolved = baseDir ?? resolveStateDir(process.env);
+    // Expand ~ to home directory for explicitly-passed user paths
+    this.baseDir = resolved.startsWith("~")
+      ? path.join(process.env.HOME || process.env.USERPROFILE || "~", resolved.slice(2))
+      : resolved;
   }
 
   /**

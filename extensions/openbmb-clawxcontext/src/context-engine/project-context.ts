@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import { homedir, platform as platformName, arch, release } from "node:os";
 import path from "node:path";
 import type { PluginLogger, PluginRuntime } from "openclaw/plugin-sdk";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 import type { ContextDiagnosticsStore } from "../diagnostics/store.js";
 import type {
   ActiveScopeSignal,
@@ -364,7 +365,7 @@ function renderStaticProjectContext(params: {
   sections.push(`ClawXContext policy:\n${PLUGIN_STABLE_GUIDANCE}`);
   if (params.userOpenclawMd?.trim()) {
     sections.push(
-      `User defaults from ~/.edgeclaw/OPENCLAW.md:\n${truncateBlock(params.userOpenclawMd)}`,
+      `User defaults from ${resolveStateDir(process.env)}/OPENCLAW.md:\n${truncateBlock(params.userOpenclawMd)}`,
     );
   }
   if (params.openclawMd?.trim()) {
@@ -491,7 +492,7 @@ export class ProjectContextManager {
       return undefined;
     }
 
-    const userOpenclawMdPath = path.join(homedir(), ".edgeclaw", "OPENCLAW.md");
+    const userOpenclawMdPath = path.join(resolveStateDir(process.env), "OPENCLAW.md");
     const openclawMdPath = path.join(workspaceDir, "OPENCLAW.md");
     const openclawLocalMdPath = path.join(workspaceDir, "OPENCLAW.local.md");
     const [userOpenclawMd, openclawMd, openclawLocalMd] = await Promise.all([
@@ -518,7 +519,7 @@ export class ProjectContextManager {
     const relevantFiles = (params.relevantFiles ?? []).map((value) => value.trim()).filter(Boolean);
     const [userPathRules, workspacePathRules] = await Promise.all([
       loadMatchedPathRules({
-        rootDir: path.join(homedir(), ".edgeclaw", "rules"),
+        rootDir: path.join(resolveStateDir(process.env), "rules"),
         relevantFiles,
         workspaceDir,
         origin: "user",

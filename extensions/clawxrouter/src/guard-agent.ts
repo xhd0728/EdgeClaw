@@ -1,3 +1,5 @@
+import path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 import type { PrivacyConfig, SensitivityLevel } from "./types.js";
 
 /**
@@ -36,7 +38,8 @@ export function getGuardAgentConfig(config: PrivacyConfig): {
   return {
     id: config.guardAgent?.id ?? "guard",
     model: fullModel,
-    workspace: config.guardAgent?.workspace ?? "~/.edgeclaw/workspace-guard",
+    workspace:
+      config.guardAgent?.workspace ?? path.join(resolveStateDir(process.env), "workspace-guard"),
     provider,
     modelName,
   };

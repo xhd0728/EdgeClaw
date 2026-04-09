@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 import {
   buildMainSessionPlaceholder,
   getGuardAgentConfig,
@@ -612,7 +613,7 @@ export function registerHooks(api: OpenClawPluginApi): void {
         recordDetection(sessionKey, "S1", "onToolCallProposed", `tool: ${toolName}`);
         return;
       }
-      const baseDir = privacyConfig.session?.baseDir ?? "~/.edgeclaw";
+      const baseDir = privacyConfig.session?.baseDir ?? resolveStateDir(process.env);
 
       // File-access guard for cloud models only — local models (Guard Agent
       // sessions and S3 active routing) are trusted to read full history.

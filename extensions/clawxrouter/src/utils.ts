@@ -1,3 +1,5 @@
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
+
 /**
  * Normalize path for comparison (expand ~, resolve relative paths)
  */
@@ -262,7 +264,10 @@ export function redactSensitiveInfo(
 /**
  * Check if a path refers to protected memory/history directories that cloud models should not access.
  */
-export function isProtectedMemoryPath(filePath: string, baseDir: string = "~/.edgeclaw"): boolean {
+export function isProtectedMemoryPath(
+  filePath: string,
+  baseDir: string = resolveStateDir(process.env),
+): boolean {
   const normalizedFile = normalizePath(filePath);
   const normalizedBase = normalizePath(baseDir);
   const escapedBase = normalizedBase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
