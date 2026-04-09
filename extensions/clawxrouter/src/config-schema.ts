@@ -172,7 +172,7 @@ export const defaultPrivacyConfig = {
   },
   guardAgent: {
     id: "guard",
-    workspace: "~/.openclaw/workspace-guard",
+    workspace: "~/.edgeclaw/workspace-guard",
     model: "ollama/openbmb/minicpm4.1",
   },
   localProviders: [] as string[],
@@ -199,7 +199,7 @@ export const defaultPrivacyConfig = {
   },
   session: {
     isolateGuardHistory: true,
-    baseDir: "~/.openclaw",
+    baseDir: "~/.edgeclaw",
     injectDualHistory: true,
     historyLimit: 20,
   },

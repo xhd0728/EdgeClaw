@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
-const OPENCLAW_DIR =
-  process.env.OPENCLAW_STATE_DIR?.trim() || join(process.env.HOME ?? "/tmp", ".openclaw");
+const OPENCLAW_DIR = resolveStateDir(process.env);
 
 export const CLAWXROUTER_CONFIG_PATH = join(OPENCLAW_DIR, "clawxrouter.json");
 

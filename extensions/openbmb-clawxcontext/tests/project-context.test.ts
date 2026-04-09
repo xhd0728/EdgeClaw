@@ -12,7 +12,7 @@ async function createHarness() {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawxcontext-project-"));
   tempDirs.push(dir);
   const homeDir = path.join(dir, "home");
-  await fs.mkdir(path.join(homeDir, ".openclaw"), { recursive: true });
+  await fs.mkdir(path.join(homeDir, ".edgeclaw"), { recursive: true });
   vi.stubEnv("HOME", homeDir);
   const config = buildPluginConfig({ dataDir: dir });
   const store = new ContextDiagnosticsStore(config);
@@ -102,7 +102,7 @@ describe("ProjectContextManager", () => {
   it("loads OPENCLAW files, git context, and compact instructions while ignoring CLAUDE files", async () => {
     const { dir, homeDir, store, manager, runCommand } = await createHarness();
     await fs.writeFile(
-      path.join(homeDir, ".openclaw", "OPENCLAW.md"),
+      path.join(homeDir, ".edgeclaw", "OPENCLAW.md"),
       [
         "# User Defaults",
         "Always keep diagnostics terse.",
@@ -146,7 +146,7 @@ describe("ProjectContextManager", () => {
       persist: true,
     });
 
-    expect(loaded?.systemContext).toContain("User defaults from ~/.openclaw/OPENCLAW.md");
+    expect(loaded?.systemContext).toContain("User defaults from ~/.edgeclaw/OPENCLAW.md");
     expect(loaded?.systemContext).toContain("Project instructions from OPENCLAW.md");
     expect(loaded?.systemContext).toContain("Local overrides from OPENCLAW.local.md");
     expect(loaded?.systemContext).toContain("Runtime platform:");
@@ -158,7 +158,9 @@ describe("ProjectContextManager", () => {
     expect(loaded?.dynamicContext).toContain("Git diff summary:");
     expect(loaded?.compactInstructions).toContain("Keep the active task");
     expect(loaded?.compactInstructions).toContain("Preserve local overrides");
-    expect(loaded?.compactInstructions).toContain("Retain the active task and user-specific defaults.");
+    expect(loaded?.compactInstructions).toContain(
+      "Retain the active task and user-specific defaults.",
+    );
     expect(runCommand).toHaveBeenCalledTimes(6);
 
     const session = await store.getSession("agent:main:main");
@@ -174,7 +176,9 @@ describe("ProjectContextManager", () => {
         (source) => source.kind === "openclawMd" && source.present,
       ),
     ).toBe(true);
-    expect(session.projectContext?.stablePrefixPreview).toContain("User defaults from ~/.openclaw/OPENCLAW.md");
+    expect(session.projectContext?.stablePrefixPreview).toContain(
+      "User defaults from ~/.edgeclaw/OPENCLAW.md",
+    );
     expect(session.projectContext?.compactInstructionsPreview).toContain("Keep the active task");
     expect(session.projectContext?.gitDiffSummary[0]).toContain("src/index.ts");
   });
@@ -182,7 +186,7 @@ describe("ProjectContextManager", () => {
   it("marks only files with Compact Instructions as usedForCompaction", async () => {
     const { dir, homeDir, manager } = await createHarness();
     await fs.writeFile(
-      path.join(homeDir, ".openclaw", "OPENCLAW.md"),
+      path.join(homeDir, ".edgeclaw", "OPENCLAW.md"),
       ["# User Defaults", "", "## Compact Instructions", "Keep user defaults stable."].join("\n"),
       "utf-8",
     );
@@ -193,7 +197,9 @@ describe("ProjectContextManager", () => {
     );
     await fs.writeFile(
       path.join(dir, "OPENCLAW.local.md"),
-      ["# Local Guide", "", "## Compact Instructions", "Preserve local validation notes."].join("\n"),
+      ["# Local Guide", "", "## Compact Instructions", "Preserve local validation notes."].join(
+        "\n",
+      ),
       "utf-8",
     );
 
@@ -209,18 +215,15 @@ describe("ProjectContextManager", () => {
 
   it("loads matched path-scoped rules into dynamic context and compaction instructions", async () => {
     const { dir, homeDir, manager } = await createHarness();
-    await fs.mkdir(path.join(homeDir, ".openclaw", "rules", "packages"), { recursive: true });
-    await fs.mkdir(path.join(dir, ".openclaw", "rules", "src"), { recursive: true });
+    await fs.mkdir(path.join(homeDir, ".edgeclaw", "rules", "packages"), { recursive: true });
+    await fs.mkdir(path.join(dir, ".edgeclaw", "rules", "src"), { recursive: true });
     await fs.writeFile(
-      path.join(homeDir, ".openclaw", "rules", "packages", "api.md"),
-      [
-        "# User Path Rule",
-        "Prefer minimal API changes.",
-      ].join("\n"),
+      path.join(homeDir, ".edgeclaw", "rules", "packages", "api.md"),
+      ["# User Path Rule", "Prefer minimal API changes."].join("\n"),
       "utf-8",
     );
     await fs.writeFile(
-      path.join(dir, ".openclaw", "rules", "src", "index.ts.md"),
+      path.join(dir, ".edgeclaw", "rules", "src", "index.ts.md"),
       [
         "# Project Path Rule",
         "Preserve exported context-engine interfaces.",
@@ -243,24 +246,23 @@ describe("ProjectContextManager", () => {
       "Retain src/index.ts API changes and unresolved validation steps.",
     );
     expect(
-      loaded?.snapshot.sources.filter((source) => source.kind === "pathRule").map((source) => source.path),
+      loaded?.snapshot.sources
+        .filter((source) => source.kind === "pathRule")
+        .map((source) => source.path),
     ).toEqual(
       expect.arrayContaining([
-        path.join(homeDir, ".openclaw", "rules", "packages", "api.md"),
-        path.join(dir, ".openclaw", "rules", "src", "index.ts.md"),
+        path.join(homeDir, ".edgeclaw", "rules", "packages", "api.md"),
+        path.join(dir, ".edgeclaw", "rules", "src", "index.ts.md"),
       ]),
     );
   });
 
   it("matches path-scoped rules from absolute workspace paths", async () => {
     const { dir, manager } = await createHarness();
-    await fs.mkdir(path.join(dir, ".openclaw", "rules", "src"), { recursive: true });
+    await fs.mkdir(path.join(dir, ".edgeclaw", "rules", "src"), { recursive: true });
     await fs.writeFile(
-      path.join(dir, ".openclaw", "rules", "src", "index.ts.md"),
-      [
-        "# Project Path Rule",
-        "Prefer stable src/index.ts edits.",
-      ].join("\n"),
+      path.join(dir, ".edgeclaw", "rules", "src", "index.ts.md"),
+      ["# Project Path Rule", "Prefer stable src/index.ts edits."].join("\n"),
       "utf-8",
     );
 
@@ -279,15 +281,15 @@ describe("ProjectContextManager", () => {
 
   it("prioritizes workspace rules and can match them from error-path scope signals", async () => {
     const { dir, homeDir, manager } = await createHarness();
-    await fs.mkdir(path.join(homeDir, ".openclaw", "rules", "src"), { recursive: true });
-    await fs.mkdir(path.join(dir, ".openclaw", "rules", "src"), { recursive: true });
+    await fs.mkdir(path.join(homeDir, ".edgeclaw", "rules", "src"), { recursive: true });
+    await fs.mkdir(path.join(dir, ".edgeclaw", "rules", "src"), { recursive: true });
     await fs.writeFile(
-      path.join(homeDir, ".openclaw", "rules", "src", "index.ts.md"),
+      path.join(homeDir, ".edgeclaw", "rules", "src", "index.ts.md"),
       ["# User Rule", "User-level src/index.ts guidance."].join("\n"),
       "utf-8",
     );
     await fs.writeFile(
-      path.join(dir, ".openclaw", "rules", "src", "index.ts.md"),
+      path.join(dir, ".edgeclaw", "rules", "src", "index.ts.md"),
       ["# Workspace Rule", "Workspace-level src/index.ts guidance."].join("\n"),
       "utf-8",
     );
@@ -313,9 +315,9 @@ describe("ProjectContextManager", () => {
 
   it("matches scope signals provided as absolute workspace paths", async () => {
     const { dir, manager } = await createHarness();
-    await fs.mkdir(path.join(dir, ".openclaw", "rules", "src"), { recursive: true });
+    await fs.mkdir(path.join(dir, ".edgeclaw", "rules", "src"), { recursive: true });
     await fs.writeFile(
-      path.join(dir, ".openclaw", "rules", "src", "index.ts.md"),
+      path.join(dir, ".edgeclaw", "rules", "src", "index.ts.md"),
       ["# Workspace Rule", "Workspace-level src/index.ts guidance."].join("\n"),
       "utf-8",
     );

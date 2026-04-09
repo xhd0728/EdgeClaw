@@ -4,9 +4,7 @@
   "description": "Multi-level memory plugin (L0/L1/L2) with local-first SQLite and ChatGPT-style UI.",
   "version": "0.1.5",
   "kind": "memory",
-  "skills": [
-    "agent-skills"
-  ],
+  "skills": ["agent-skills"],
   "configSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -25,10 +23,7 @@
       },
       "captureStrategy": {
         "type": "string",
-        "enum": [
-          "last_turn",
-          "full_session"
-        ],
+        "enum": ["last_turn", "full_session"],
         "default": "full_session"
       },
       "includeAssistant": {
@@ -49,10 +44,7 @@
       },
       "reasoningMode": {
         "type": "string",
-        "enum": [
-          "answer_first",
-          "accuracy_first"
-        ],
+        "enum": ["answer_first", "accuracy_first"],
         "default": "answer_first"
       },
       "maxAutoReplyLatencyMs": {
@@ -103,11 +95,11 @@
   "uiHints": {
     "dbPath": {
       "label": "SQLite Path",
-      "placeholder": "~/.openclaw/clawxmemory/memory.sqlite"
+      "placeholder": "~/.edgeclaw/clawxmemory/memory.sqlite"
     },
     "skillsDir": {
       "label": "Skills Directory",
-      "placeholder": "~/.openclaw/clawxmemory/skills"
+      "placeholder": "~/.edgeclaw/clawxmemory/skills"
     },
     "captureStrategy": {
       "label": "Capture Strategy",

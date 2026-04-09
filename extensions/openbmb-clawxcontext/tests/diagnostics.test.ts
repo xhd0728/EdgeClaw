@@ -3,8 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildPluginConfig } from "../src/config.js";
-import { buildDiagnosticsToolsForSession } from "../src/diagnostics/tools.js";
 import { ContextDiagnosticsStore } from "../src/diagnostics/store.js";
+import { buildDiagnosticsToolsForSession } from "../src/diagnostics/tools.js";
 
 const tempDirs: string[] = [];
 
@@ -37,10 +37,10 @@ describe("context_inspect tool", () => {
       recentCommits: ["abc123 tighten context"],
       gitStatusSummary: ["Modified: src/index.ts"],
       gitDiffSummary: ["src/index.ts | 8 ++++----"],
-      stablePrefixPreview: "User defaults from ~/.openclaw/OPENCLAW.md",
+      stablePrefixPreview: "User defaults from ~/.edgeclaw/OPENCLAW.md",
       activeRuleMatches: [
         {
-          path: "/tmp/workspace/.openclaw/rules/src/index.ts.md",
+          path: "/tmp/workspace/.edgeclaw/rules/src/index.ts.md",
           scope: "src/index.ts",
           origin: "workspace",
           specificity: 2,
@@ -52,7 +52,7 @@ describe("context_inspect tool", () => {
         {
           kind: "userOpenclawMd",
           present: true,
-          path: "/tmp/home/.openclaw/OPENCLAW.md",
+          path: "/tmp/home/.edgeclaw/OPENCLAW.md",
           usedForPrompt: true,
           usedForCompaction: true,
         },
@@ -120,7 +120,8 @@ describe("context_inspect tool", () => {
       priority: 4,
       createdAt: new Date().toISOString(),
       language: "en",
-      message: "I applied the project rules for the current file scope and will continue under them.",
+      message:
+        "I applied the project rules for the current file scope and will continue under them.",
     });
 
     const tool = buildDiagnosticsToolsForSession(store, {
@@ -132,26 +133,26 @@ describe("context_inspect tool", () => {
 
     const details = result.details;
     expect(details).toBeTruthy();
-    expect((details).session.sessionKey).toBe("agent:main:main");
-    expect((details).session.lastWorkingSet.retainedPreview[0].textPreview).toBe("inspect preview");
-    expect((details).pressureStage).toBe("elevated");
-    expect((details).compactionBias).toBe("normal");
-    expect((details).reinjectionMode).toBe("summary+recent-files");
-    expect((details).debtBreakdown.readBloatDebt).toBe(120);
-    expect(Array.isArray((details).budgetHotspots)).toBe(true);
-    expect((details).projectRuleSources).toHaveLength(2);
-    expect((details).ruleMatchSources).toHaveLength(1);
-    expect((details).stablePrefixPreview).toContain("User defaults");
-    expect((details).preflightAction).toBe("snip-pressure-recommended");
-    expect((details).overflowRisk).toBe("medium");
-    expect((details).overflowRecoveryProfile).toBeUndefined();
-    expect((details).cacheHealth.stablePrefixAvailable).toBe(true);
-    expect((details).cacheHealth.recentStatuses).toEqual(["write", "hit"]);
-    expect((details).cacheHealth.recentTrend).toBe("warming");
-    expect((details).pendingUserNotice.source).toBe("path-rule");
-    expect((details).userNoticeSource).toBe("path-rule");
-    expect(Array.isArray((details).suggestions)).toBe(true);
-    expect((details).events).toHaveLength(1);
+    expect(details.session.sessionKey).toBe("agent:main:main");
+    expect(details.session.lastWorkingSet.retainedPreview[0].textPreview).toBe("inspect preview");
+    expect(details.pressureStage).toBe("elevated");
+    expect(details.compactionBias).toBe("normal");
+    expect(details.reinjectionMode).toBe("summary+recent-files");
+    expect(details.debtBreakdown.readBloatDebt).toBe(120);
+    expect(Array.isArray(details.budgetHotspots)).toBe(true);
+    expect(details.projectRuleSources).toHaveLength(2);
+    expect(details.ruleMatchSources).toHaveLength(1);
+    expect(details.stablePrefixPreview).toContain("User defaults");
+    expect(details.preflightAction).toBe("snip-pressure-recommended");
+    expect(details.overflowRisk).toBe("medium");
+    expect(details.overflowRecoveryProfile).toBeUndefined();
+    expect(details.cacheHealth.stablePrefixAvailable).toBe(true);
+    expect(details.cacheHealth.recentStatuses).toEqual(["write", "hit"]);
+    expect(details.cacheHealth.recentTrend).toBe("warming");
+    expect(details.pendingUserNotice.source).toBe("path-rule");
+    expect(details.userNoticeSource).toBe("path-rule");
+    expect(Array.isArray(details.suggestions)).toBe(true);
+    expect(details.events).toHaveLength(1);
   });
 });
 
@@ -187,7 +188,12 @@ describe("context_suggest tool", () => {
           message: {
             role: "assistant",
             content: [
-              { type: "toolCall", id: "call_read_1", name: "read", arguments: { path: "src/index.ts" } },
+              {
+                type: "toolCall",
+                id: "call_read_1",
+                name: "read",
+                arguments: { path: "src/index.ts" },
+              },
             ],
             timestamp: 2,
           },
@@ -213,7 +219,12 @@ describe("context_suggest tool", () => {
           message: {
             role: "assistant",
             content: [
-              { type: "toolCall", id: "call_read_2", name: "read", arguments: { path: "src/index.ts" } },
+              {
+                type: "toolCall",
+                id: "call_read_2",
+                name: "read",
+                arguments: { path: "src/index.ts" },
+              },
             ],
             timestamp: 4,
           },
@@ -290,16 +301,23 @@ describe("context_suggest tool", () => {
     expect((result?.details as { pressureStage?: string }).pressureStage).toBeDefined();
     expect((result?.details as { compactionBias?: string }).compactionBias).toBeDefined();
     expect((result?.details as { preflightAction?: string }).preflightAction).toBeDefined();
-    expect((result?.details as { cacheHealth?: { stablePrefixAvailable?: boolean } }).cacheHealth?.stablePrefixAvailable).toBe(true);
-    expect(Array.isArray((result?.details as { budgetHotspots?: unknown[] }).budgetHotspots)).toBe(true);
+    expect(
+      (result?.details as { cacheHealth?: { stablePrefixAvailable?: boolean } }).cacheHealth
+        ?.stablePrefixAvailable,
+    ).toBe(true);
+    expect(Array.isArray((result?.details as { budgetHotspots?: unknown[] }).budgetHotspots)).toBe(
+      true,
+    );
     expect(details.suggestions?.some((entry) => entry.title.includes("Working set is near"))).toBe(
       true,
     );
+    expect(details.suggestions?.some((entry) => entry.title.includes("Repeated file reads"))).toBe(
+      true,
+    );
     expect(
-      details.suggestions?.some((entry) => entry.title.includes("Repeated file reads")),
-    ).toBe(true);
-    expect(
-      details.suggestions?.some((entry) => entry.title.includes("Compact before the next large turn")),
+      details.suggestions?.some((entry) =>
+        entry.title.includes("Compact before the next large turn"),
+      ),
     ).toBe(true);
   });
 });

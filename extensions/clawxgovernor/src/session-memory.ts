@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
 function resolveNotesDir(stateDir: string): string {
   return path.join(stateDir, "notes");
@@ -86,7 +86,7 @@ export function registerSessionMemory(
 ): void {
   const stateDir =
     (pluginConfig.memoryStateDir as string) ??
-    path.join(os.homedir(), ".openclaw", "cc-session-memory");
+    path.join(resolveStateDir(process.env), "cc-session-memory");
   const notesDir = resolveNotesDir(stateDir);
   const maxHintLines = (pluginConfig.maxHintLines as number) ?? 5;
 

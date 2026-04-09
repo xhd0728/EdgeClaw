@@ -297,6 +297,10 @@ function summarizeError(err: unknown): string {
   return line.length > 120 ? `${line.slice(0, 119)}…` : line;
 }
 
+export function resolveDefaultWorkspace(): string {
+  return resolveDefaultAgentWorkspaceDir();
+}
+
 export const DEFAULT_WORKSPACE = DEFAULT_AGENT_WORKSPACE_DIR;
 
 export function resolveControlUiLinks(params: {

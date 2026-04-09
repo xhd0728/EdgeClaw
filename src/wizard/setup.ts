@@ -230,7 +230,7 @@ export async function runSetupWizard(
 
     if (action === "reset") {
       const workspaceDefault =
-        baseConfig.agents?.defaults?.workspace ?? onboardHelpers.DEFAULT_WORKSPACE;
+        baseConfig.agents?.defaults?.workspace ?? onboardHelpers.resolveDefaultWorkspace();
       const resetScope = (await prompter.select({
         message: "Reset scope",
         options: [
@@ -472,13 +472,16 @@ export async function runSetupWizard(
   const workspaceInput =
     opts.workspace ??
     (flow === "quickstart"
-      ? (baseConfig.agents?.defaults?.workspace ?? onboardHelpers.DEFAULT_WORKSPACE)
+      ? (baseConfig.agents?.defaults?.workspace ?? onboardHelpers.resolveDefaultWorkspace())
       : await prompter.text({
           message: "Workspace directory",
-          initialValue: baseConfig.agents?.defaults?.workspace ?? onboardHelpers.DEFAULT_WORKSPACE,
+          initialValue:
+            baseConfig.agents?.defaults?.workspace ?? onboardHelpers.resolveDefaultWorkspace(),
         }));
 
-  const workspaceDir = resolveUserPath(workspaceInput.trim() || onboardHelpers.DEFAULT_WORKSPACE);
+  const workspaceDir = resolveUserPath(
+    workspaceInput.trim() || onboardHelpers.resolveDefaultWorkspace(),
+  );
 
   const { applyLocalSetupWorkspaceConfig } = await import("../commands/onboard-config.js");
   let nextConfig: OpenClawConfig = applyLocalSetupWorkspaceConfig(baseConfig, workspaceDir);

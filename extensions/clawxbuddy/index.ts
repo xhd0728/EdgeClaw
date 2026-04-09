@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 import { definePluginEntry, type OpenClawPluginApi } from "./api.js";
 import { getCompanion, roll } from "./src/core/companion.js";
 import { renderFace, renderSprite } from "./src/core/sprites.js";
@@ -15,7 +15,7 @@ type BuddyPluginConfig = {
   userId?: string;
 };
 
-const STATE_FILE = path.join(os.homedir(), ".openclaw", "buddy-state.json");
+const STATE_FILE = path.join(resolveStateDir(process.env), "buddy-state.json");
 
 const DEFAULT_NAMES = [
   "Pip",

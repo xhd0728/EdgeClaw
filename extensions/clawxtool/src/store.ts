@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
 export type TaskStatus = "pending" | "in_progress" | "completed" | "cancelled";
 
@@ -27,7 +27,7 @@ export class TaskStore {
   private maxTasks: number;
 
   constructor(stateDir?: string, maxTasks = 200) {
-    this.dir = stateDir ?? path.join(os.homedir(), ".openclaw", "ct-task-manager");
+    this.dir = stateDir ?? path.join(resolveStateDir(process.env), "ct-task-manager");
     this.filePath = path.join(this.dir, "tasks.json");
     this.lockPath = path.join(this.dir, "tasks.lock");
     this.maxTasks = maxTasks;

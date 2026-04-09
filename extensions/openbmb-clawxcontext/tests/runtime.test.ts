@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig, PluginRuntime } from "openclaw/plugin-sdk";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ContextPluginRuntime } from "../src/runtime.js";
 
 const tempDirs: string[] = [];
@@ -31,10 +31,10 @@ describe("ContextPluginRuntime hooks", () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawxcontext-runtime-"));
     tempDirs.push(dir);
     const homeDir = path.join(dir, "home");
-    await fs.mkdir(path.join(homeDir, ".openclaw"), { recursive: true });
+    await fs.mkdir(path.join(homeDir, ".edgeclaw"), { recursive: true });
     vi.stubEnv("HOME", homeDir);
     await fs.writeFile(
-      path.join(homeDir, ".openclaw", "OPENCLAW.md"),
+      path.join(homeDir, ".edgeclaw", "OPENCLAW.md"),
       ["# User Defaults", "", "## Compact Instructions", "Keep user defaults stable."].join("\n"),
       "utf-8",
     );
@@ -124,11 +124,15 @@ describe("ContextPluginRuntime hooks", () => {
       { sessionKey: "agent:main:main", workspaceDir: dir },
     );
 
-    expect(promptResult?.prependSystemContext).toContain("User defaults from ~/.openclaw/OPENCLAW.md");
+    expect(promptResult?.prependSystemContext).toContain(
+      "User defaults from ~/.edgeclaw/OPENCLAW.md",
+    );
     expect(promptResult?.prependSystemContext).toContain("Project instructions from OPENCLAW.md");
     expect(promptResult?.prependSystemContext).toContain("Runtime platform:");
     expect(promptResult?.prependContext).toBeUndefined();
-    expect(promptResult?.appendSystemContext).toContain("Project state maintained by ClawXContext.");
+    expect(promptResult?.appendSystemContext).toContain(
+      "Project state maintained by ClawXContext.",
+    );
     expect(promptResult?.appendSystemContext).toContain("Current git branch: main");
     expect(promptResult?.appendSystemContext).toContain("HEAD: abc1234");
 
@@ -152,18 +156,20 @@ describe("ContextPluginRuntime hooks", () => {
     expect(session.cacheUsage.totalCacheReadTokens).toBe(256);
     expect(session.cacheUsage.totalCacheWriteTokens).toBe(1024);
     expect(session.cacheUsage.recentStatuses).toEqual(["hit"]);
-    expect((await runtime.store.listEvents("agent:main:main")).some((event) => event.type === "hook")).toBe(true);
+    expect(
+      (await runtime.store.listEvents("agent:main:main")).some((event) => event.type === "hook"),
+    ).toBe(true);
   });
 
   it("passes recent file activity into path-scoped rule matching during before_prompt_build", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "clawxcontext-runtime-rules-"));
     tempDirs.push(dir);
     const homeDir = path.join(dir, "home");
-    await fs.mkdir(path.join(homeDir, ".openclaw"), { recursive: true });
-    await fs.mkdir(path.join(dir, ".openclaw", "rules", "src"), { recursive: true });
+    await fs.mkdir(path.join(homeDir, ".edgeclaw"), { recursive: true });
+    await fs.mkdir(path.join(dir, ".edgeclaw", "rules", "src"), { recursive: true });
     vi.stubEnv("HOME", homeDir);
     await fs.writeFile(
-      path.join(dir, ".openclaw", "rules", "src", "index.ts.md"),
+      path.join(dir, ".edgeclaw", "rules", "src", "index.ts.md"),
       ["# Path Rule", "Keep src/index.ts edits narrow."].join("\n"),
       "utf-8",
     );
@@ -322,9 +328,7 @@ describe("ContextPluginRuntime hooks", () => {
       {
         provider: "anthropic",
         model: "claude-sonnet",
-        assistantTexts: [
-          "刚完成上下文压缩，会继续按当前任务线处理。\n下面继续。",
-        ],
+        assistantTexts: ["刚完成上下文压缩，会继续按当前任务线处理。\n下面继续。"],
         usage: {},
       },
       { sessionKey: "agent:main:main" },

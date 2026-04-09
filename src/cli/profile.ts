@@ -1,5 +1,6 @@
 import os from "node:os";
 import path from "node:path";
+import { resolveStateDirName } from "../config/paths.js";
 import { FLAG_TERMINATOR } from "../infra/cli-root-options.js";
 import { resolveRequiredHomeDir } from "../infra/home-dir.js";
 import { getPrimaryCommand } from "./argv.js";
@@ -83,8 +84,10 @@ function resolveProfileStateDir(
   env: Record<string, string | undefined>,
   homedir: () => string,
 ): string {
-  const suffix = profile.toLowerCase() === "default" ? "" : `-${profile}`;
-  return path.join(resolveRequiredHomeDir(env as NodeJS.ProcessEnv, homedir), `.openclaw${suffix}`);
+  return path.join(
+    resolveRequiredHomeDir(env as NodeJS.ProcessEnv, homedir),
+    resolveStateDirName(profile),
+  );
 }
 
 export function applyCliProfileEnv(params: {

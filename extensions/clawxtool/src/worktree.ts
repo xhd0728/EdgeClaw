@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { promisify } from "node:util";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
 const exec = promisify(execFile);
 
@@ -52,7 +53,7 @@ export async function createWorktree(
   cwd?: string,
 ): Promise<{ path: string; branch: string; summary: string }> {
   const root = await getGitRoot(cwd);
-  const worktreePath = targetDir ?? path.join(root, ".openclaw", "worktrees", branch);
+  const worktreePath = targetDir ?? path.join(resolveStateDir(process.env), "worktrees", branch);
 
   if (fs.existsSync(worktreePath)) {
     throw new Error(`Worktree path already exists: ${worktreePath}`);

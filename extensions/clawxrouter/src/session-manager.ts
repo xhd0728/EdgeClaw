@@ -29,7 +29,7 @@ export class DualSessionManager {
     await next;
   }
 
-  constructor(baseDir: string = "~/.openclaw") {
+  constructor(baseDir: string = "~/.edgeclaw") {
     // Expand ~ to home directory
     this.baseDir = baseDir.startsWith("~")
       ? path.join(process.env.HOME || process.env.USERPROFILE || "~", baseDir.slice(2))

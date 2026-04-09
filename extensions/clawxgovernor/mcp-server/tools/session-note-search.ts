@@ -1,8 +1,8 @@
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
-const NOTES_DIR = path.join(os.homedir(), ".openclaw", "cc-session-memory", "notes");
+const NOTES_DIR = path.join(resolveStateDir(process.env), "cc-session-memory", "notes");
 
 interface SearchResult {
   sessionId: string;

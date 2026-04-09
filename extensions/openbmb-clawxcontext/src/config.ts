@@ -1,6 +1,7 @@
-import { Type } from "@sinclair/typebox";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
+import { Type } from "@sinclair/typebox";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
 export const PLUGIN_ID = "openbmb-clawxcontext";
 export const DEFAULT_PROTECTED_RECENT_TURNS = 6;
@@ -48,7 +49,7 @@ export const pluginConfigJsonSchema = Type.Object(
 export const pluginConfigUiHints = {
   dataDir: {
     label: "Data Directory",
-    placeholder: "~/.openclaw/clawxcontext",
+    placeholder: "~/.edgeclaw/clawxcontext",
   },
   protectedRecentTurns: {
     label: "Protected Recent Turns",
@@ -94,14 +95,10 @@ function readInteger(raw: unknown, fallback: number, minimum = 0): number {
 }
 
 export function buildPluginConfig(raw: Record<string, unknown> | undefined): PluginRuntimeConfig {
-  const defaultDataDir = resolve(homedir(), ".openclaw/clawxcontext");
+  const defaultDataDir = resolve(resolveStateDir(process.env), "clawxcontext");
   return {
     dataDir: expandHome(readString(raw?.dataDir, defaultDataDir)),
-    protectedRecentTurns: readInteger(
-      raw?.protectedRecentTurns,
-      DEFAULT_PROTECTED_RECENT_TURNS,
-      1,
-    ),
+    protectedRecentTurns: readInteger(raw?.protectedRecentTurns, DEFAULT_PROTECTED_RECENT_TURNS, 1),
     snipEnabled: readBoolean(raw?.snipEnabled, true),
     microcompactEnabled: readBoolean(raw?.microcompactEnabled, true),
     autoCompactEnabled: readBoolean(raw?.autoCompactEnabled, true),
@@ -111,11 +108,7 @@ export function buildPluginConfig(raw: Record<string, unknown> | undefined): Plu
       0,
     ),
     reinjectSummary: readBoolean(raw?.reinjectSummary, true),
-    reinjectRecentFiles: readInteger(
-      raw?.reinjectRecentFiles,
-      DEFAULT_REINJECT_RECENT_FILES,
-      0,
-    ),
+    reinjectRecentFiles: readInteger(raw?.reinjectRecentFiles, DEFAULT_REINJECT_RECENT_FILES, 0),
     reinjectCriticalToolOutputs: readInteger(
       raw?.reinjectCriticalToolOutputs,
       DEFAULT_REINJECT_CRITICAL_TOOL_OUTPUTS,

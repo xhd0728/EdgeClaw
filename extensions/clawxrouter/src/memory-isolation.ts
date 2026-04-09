@@ -10,7 +10,7 @@ export const GUARD_SECTION_END = "<!-- clawxrouter:guard-end -->";
 export class MemoryIsolationManager {
   private workspaceDir: string;
 
-  constructor(workspaceDir: string = "~/.openclaw/workspace") {
+  constructor(workspaceDir: string = "~/.edgeclaw/workspace-main") {
     // Expand ~ to home directory
     this.workspaceDir = workspaceDir.startsWith("~")
       ? path.join(process.env.HOME || process.env.USERPROFILE || "~", workspaceDir.slice(2))

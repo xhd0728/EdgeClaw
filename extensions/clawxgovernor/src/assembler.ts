@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
 import type { ContextEngineFactory } from "openclaw/plugin-sdk";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
 interface PluginLogger {
   debug?(msg: string): void;
@@ -32,9 +32,9 @@ function estimateTokens(messages: Array<Record<string, unknown>>): number {
   return Math.ceil(chars / 4);
 }
 
-function resolveStateDir(stateDir?: string): string {
+function resolveContextStateDir(stateDir?: string): string {
   if (stateDir) return stateDir;
-  return path.join(os.homedir(), ".openclaw", "cc-context-engine");
+  return path.join(resolveStateDir(process.env), "cc-context-engine");
 }
 
 function writeStateFile(stateDir: string, state: Record<string, unknown>): void {
@@ -96,8 +96,8 @@ function readToolSummaries(governorDir: string, limit: number): string[] {
 
 export function createContextEngineFactory(config: EngineConfig): ContextEngineFactory {
   const { recentTailTurns, compactThresholdRatio, logger } = config;
-  const stateDir = resolveStateDir(config.stateDir);
-  const governorDir = path.join(os.homedir(), ".openclaw", "cc-tool-governor");
+  const stateDir = resolveContextStateDir(config.stateDir);
+  const governorDir = path.join(resolveStateDir(process.env), "cc-tool-governor");
 
   let lastCompactTime: string | undefined;
   let lastCompactSummary: string | undefined;

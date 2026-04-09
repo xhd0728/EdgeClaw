@@ -66,7 +66,7 @@ export type PrivacyConfig = {
   };
   session?: {
     isolateGuardHistory?: boolean;
-    /** Base directory for session histories (default: ~/.openclaw) */
+    /** Base directory for session histories (default: ~/.edgeclaw) */
     baseDir?: string;
     /**
      * Inject full-track conversation history as context when routing to

@@ -1,13 +1,9 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { resolveOAuthDir } from "./config/paths.js";
+import { resolveOAuthDir, resolveStateDir } from "./config/paths.js";
 import { logVerbose, shouldLogVerbose } from "./globals.js";
-import {
-  resolveEffectiveHomeDir,
-  resolveHomeRelativePath,
-  resolveRequiredHomeDir,
-} from "./infra/home-dir.js";
+import { resolveEffectiveHomeDir, resolveHomeRelativePath } from "./infra/home-dir.js";
 import { isPlainObject } from "./infra/plain-object.js";
 import { formatTerminalLink } from "./terminal/terminal-link.js";
 
@@ -287,20 +283,7 @@ export function resolveConfigDir(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = os.homedir,
 ): string {
-  const override = env.OPENCLAW_STATE_DIR?.trim();
-  if (override) {
-    return resolveUserPath(override, env, homedir);
-  }
-  const newDir = path.join(resolveRequiredHomeDir(env, homedir), ".openclaw");
-  try {
-    const hasNew = fs.existsSync(newDir);
-    if (hasNew) {
-      return newDir;
-    }
-  } catch {
-    // best-effort
-  }
-  return newDir;
+  return resolveStateDir(env, homedir);
 }
 
 export function resolveHomeDir(): string | undefined {

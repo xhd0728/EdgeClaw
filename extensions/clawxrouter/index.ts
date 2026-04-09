@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 import { clawXrouterConfigSchema, defaultPrivacyConfig } from "./src/config-schema.js";
 import { registerHooks } from "./src/hooks.js";
 import { initLiveConfig, watchConfigFile } from "./src/live-config.js";
@@ -26,8 +27,7 @@ import { TokenStatsCollector, setGlobalCollector } from "./src/token-stats.js";
 import type { PrivacyConfig, PipelineConfig, RouterRegistration } from "./src/types.js";
 import { resolveDefaultBaseUrl } from "./src/utils.js";
 
-const OPENCLAW_DIR =
-  process.env.OPENCLAW_STATE_DIR?.trim() || join(process.env.HOME ?? "/tmp", ".openclaw");
+const OPENCLAW_DIR = resolveStateDir(process.env);
 const CLAWXROUTER_CONFIG_PATH = join(OPENCLAW_DIR, "clawxrouter.json");
 const LEGACY_DASHBOARD_PATH = join(OPENCLAW_DIR, "clawxrouter-dashboard.json");
 

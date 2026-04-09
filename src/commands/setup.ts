@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import JSON5 from "json5";
 import { z } from "zod";
-import { DEFAULT_AGENT_WORKSPACE_DIR, ensureAgentWorkspace } from "../agents/workspace.js";
+import { ensureAgentWorkspace, resolveDefaultAgentWorkspaceDir } from "../agents/workspace.js";
 import { type OpenClawConfig, createConfigIO, writeConfigFile } from "../config/config.js";
 import { formatConfigPath, logConfigUpdated } from "../config/logging.js";
 import { resolveSessionTranscriptsDir } from "../config/sessions.js";
@@ -40,7 +40,7 @@ export async function setupCommand(
   const cfg = existingRaw.parsed;
   const defaults = cfg.agents?.defaults ?? {};
 
-  const workspace = desiredWorkspace ?? defaults.workspace ?? DEFAULT_AGENT_WORKSPACE_DIR;
+  const workspace = desiredWorkspace ?? defaults.workspace ?? resolveDefaultAgentWorkspaceDir();
 
   const next: OpenClawConfig = {
     ...cfg,

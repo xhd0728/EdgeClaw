@@ -17,9 +17,8 @@ export function resolveIsNixMode(env: NodeJS.ProcessEnv = process.env): boolean 
 
 export const isNixMode = resolveIsNixMode();
 
-// Support legacy state dirs so existing data is still discovered.
 const LEGACY_STATE_DIRNAMES = [".openclaw", ".clawdbot"] as const;
-const NEW_STATE_DIRNAME = ".edgeclaw";
+export const NEW_STATE_DIRNAME = ".edgeclaw";
 const CONFIG_FILENAME = "openclaw.json";
 const LEGACY_CONFIG_FILENAMES = ["clawdbot.json"] as const;
 
@@ -40,6 +39,22 @@ function newStateDir(homedir: () => string = resolveDefaultHomeDir): string {
   return path.join(homedir(), NEW_STATE_DIRNAME);
 }
 
+export function resolveStateDirName(profile?: string | null): string {
+  const normalized = profile?.trim();
+  if (!normalized || normalized.toLowerCase() === "default") {
+    return NEW_STATE_DIRNAME;
+  }
+  return `${NEW_STATE_DIRNAME}-${normalized}`;
+}
+
+function resolveDefaultStateDir(
+  env: NodeJS.ProcessEnv = process.env,
+  homedir: () => string = envHomedir(env),
+): string {
+  const effectiveHomedir = () => resolveRequiredHomeDir(env, homedir);
+  return path.join(effectiveHomedir(), resolveStateDirName(env.OPENCLAW_PROFILE));
+}
+
 export function resolveLegacyStateDir(homedir: () => string = resolveDefaultHomeDir): string {
   return legacyStateDirs(homedir)[0] ?? newStateDir(homedir);
 }
@@ -55,37 +70,17 @@ export function resolveNewStateDir(homedir: () => string = resolveDefaultHomeDir
 /**
  * State directory for mutable data (sessions, logs, caches).
  * Can be overridden via OPENCLAW_STATE_DIR.
- * Default: ~/.openclaw
+ * Default: ~/.edgeclaw
  */
 export function resolveStateDir(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = envHomedir(env),
 ): string {
-  const effectiveHomedir = () => resolveRequiredHomeDir(env, homedir);
   const override = env.OPENCLAW_STATE_DIR?.trim();
   if (override) {
-    return resolveUserPath(override, env, effectiveHomedir);
+    return resolveUserPath(override, env, () => resolveRequiredHomeDir(env, homedir));
   }
-  const newDir = newStateDir(effectiveHomedir);
-  if (env.OPENCLAW_TEST_FAST === "1") {
-    return newDir;
-  }
-  const legacyDirs = legacyStateDirs(effectiveHomedir);
-  const hasNew = fs.existsSync(newDir);
-  if (hasNew) {
-    return newDir;
-  }
-  const existingLegacy = legacyDirs.find((dir) => {
-    try {
-      return fs.existsSync(dir);
-    } catch {
-      return false;
-    }
-  });
-  if (existingLegacy) {
-    return existingLegacy;
-  }
-  return newDir;
+  return resolveDefaultStateDir(env, homedir);
 }
 
 function resolveUserPath(
@@ -101,7 +96,7 @@ export const STATE_DIR = resolveStateDir();
 /**
  * Config file path (JSON or JSON5).
  * Can be overridden via OPENCLAW_CONFIG_PATH.
- * Default: ~/.openclaw/openclaw.json (or $OPENCLAW_STATE_DIR/openclaw.json)
+ * Default: ~/.edgeclaw/openclaw.json (or $OPENCLAW_STATE_DIR/openclaw.json)
  */
 export function resolveCanonicalConfigPath(
   env: NodeJS.ProcessEnv = process.env,
@@ -206,11 +201,9 @@ export function resolveDefaultConfigCandidates(
     return candidates;
   }
 
-  const defaultDirs = [newStateDir(effectiveHomedir), ...legacyStateDirs(effectiveHomedir)];
-  for (const dir of defaultDirs) {
-    candidates.push(path.join(dir, CONFIG_FILENAME));
-    candidates.push(...LEGACY_CONFIG_FILENAMES.map((name) => path.join(dir, name)));
-  }
+  const defaultDir = resolveDefaultStateDir(env, effectiveHomedir);
+  candidates.push(path.join(defaultDir, CONFIG_FILENAME));
+  candidates.push(...LEGACY_CONFIG_FILENAMES.map((name) => path.join(defaultDir, name)));
   return candidates;
 }
 

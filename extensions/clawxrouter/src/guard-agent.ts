@@ -36,7 +36,7 @@ export function getGuardAgentConfig(config: PrivacyConfig): {
   return {
     id: config.guardAgent?.id ?? "guard",
     model: fullModel,
-    workspace: config.guardAgent?.workspace ?? "~/.openclaw/workspace-guard",
+    workspace: config.guardAgent?.workspace ?? "~/.edgeclaw/workspace-guard",
     provider,
     modelName,
   };

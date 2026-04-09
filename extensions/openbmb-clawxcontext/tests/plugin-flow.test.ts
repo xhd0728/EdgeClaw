@@ -1,5 +1,5 @@
-import path from "node:path";
 import { homedir } from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   captureInstallState,
@@ -9,7 +9,7 @@ import {
 
 const pluginId = "openbmb-clawxcontext";
 const pluginRoot = "/tmp/ClawXContext/clawxcontext";
-const defaultPluginDataDir = "/tmp/.openclaw/clawxcontext";
+const defaultPluginDataDir = "/tmp/.edgeclaw/clawxcontext";
 
 describe("clawxcontext plugin flow helpers", () => {
   it("removes ClawXContext from config when no previous state was saved", () => {

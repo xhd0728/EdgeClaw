@@ -262,7 +262,7 @@ export function redactSensitiveInfo(
 /**
  * Check if a path refers to protected memory/history directories that cloud models should not access.
  */
-export function isProtectedMemoryPath(filePath: string, baseDir: string = "~/.openclaw"): boolean {
+export function isProtectedMemoryPath(filePath: string, baseDir: string = "~/.edgeclaw"): boolean {
   const normalizedFile = normalizePath(filePath);
   const normalizedBase = normalizePath(baseDir);
   const escapedBase = normalizedBase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

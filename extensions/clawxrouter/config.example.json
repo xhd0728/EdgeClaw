@@ -166,7 +166,7 @@
     },
     "guardAgent": {
       "id": "guard",
-      "workspace": "~/.openclaw/workspace-guard",
+      "workspace": "~/.edgeclaw/workspace-guard",
       "model": "ollama/minicpm4.1"
     },
     "routers": {
@@ -220,7 +220,7 @@
     "localProviders": [],
     "session": {
       "isolateGuardHistory": true,
-      "baseDir": "~/.openclaw",
+      "baseDir": "~/.edgeclaw",
       "injectDualHistory": true,
       "historyLimit": 20
     },

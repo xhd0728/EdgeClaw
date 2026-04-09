@@ -1,8 +1,8 @@
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
-const STATE_DIR = path.join(os.homedir(), ".openclaw", "cc-context-engine");
+const STATE_DIR = path.join(resolveStateDir(process.env), "cc-context-engine");
 const STATE_FILE = path.join(STATE_DIR, "state.json");
 
 function readState(): Record<string, unknown> | null {

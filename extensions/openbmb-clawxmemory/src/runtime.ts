@@ -1,3 +1,23 @@
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
+import type { InternalHookEvent } from "openclaw/plugin-sdk/hook-runtime";
+import type {
+  PluginHookAgentEndEvent,
+  PluginHookAgentContext,
+  PluginHookBeforeMessageWriteEvent,
+  PluginHookBeforeMessageWriteResult,
+  PluginHookBeforePromptBuildEvent,
+  PluginHookBeforePromptBuildResult,
+  PluginHookBeforeResetEvent,
+  PluginHookBeforeToolCallEvent,
+  PluginHookAfterToolCallEvent,
+  PluginLogger,
+  PluginRuntime,
+  PluginHookToolContext,
+} from "openclaw/plugin-sdk/plugin-runtime";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
+import { buildPluginConfig, type PluginRuntimeConfig } from "./config.js";
 import {
   type CaseToolEvent,
   type CaseTraceRecord,
@@ -21,28 +41,16 @@ import {
   hashText,
   nowIso,
 } from "./core/index.js";
-import type { InternalHookEvent } from "openclaw/plugin-sdk/hook-runtime";
-import type {
-  PluginHookAgentEndEvent,
-  PluginHookAgentContext,
-  PluginHookBeforeMessageWriteEvent,
-  PluginHookBeforeMessageWriteResult,
-  PluginHookBeforePromptBuildEvent,
-  PluginHookBeforePromptBuildResult,
-  PluginHookBeforeResetEvent,
-  PluginHookBeforeToolCallEvent,
-  PluginHookAfterToolCallEvent,
-  PluginLogger,
-  PluginRuntime,
-  PluginHookToolContext,
-} from "openclaw/plugin-sdk/plugin-runtime";
-import { buildPluginConfig, type PluginRuntimeConfig } from "./config.js";
-import { inspectTranscriptMessage, isCommandOnlyUserText, isSessionBoundaryMarkerMessage, isSessionStartupMarkerText, normalizeMessages, normalizeTranscriptMessage } from "./message-utils.js";
+import {
+  inspectTranscriptMessage,
+  isCommandOnlyUserText,
+  isSessionBoundaryMarkerMessage,
+  isSessionStartupMarkerText,
+  normalizeMessages,
+  normalizeTranscriptMessage,
+} from "./message-utils.js";
 import { buildPluginTools } from "./tools.js";
 import { LocalUiServer } from "./ui-server.js";
-import { existsSync } from "node:fs";
-import { homedir } from "node:os";
-import { join, resolve } from "node:path";
 
 const MEMORY_REPAIR_VERSION = "2026-04-03-strict-user-io-cleanup-v16";
 const INDEXING_SETTINGS_MIGRATION_VERSION = "2026-04-02-auto-dream-settings-v3";
@@ -60,7 +68,8 @@ const NON_MEMORY_TURN_TTL_MS = 15_000;
 const STARTUP_REPAIR_SNAPSHOT_LIMIT = 200;
 const RECENT_CASE_LIMIT = 30;
 const STARTUP_FALLBACK_GREETING = "I'm ready. What would you like to do?";
-const STARTUP_BOUNDARY_RUNNING_MESSAGE = "Applying managed OpenClaw memory config and requesting a gateway restart.";
+const STARTUP_BOUNDARY_RUNNING_MESSAGE =
+  "Applying managed OpenClaw memory config and requesting a gateway restart.";
 
 interface MemoryBoundaryDiagnostics {
   slotOwner: string;
@@ -87,18 +96,18 @@ interface LoggerLike {
 function safeLog(logger: PluginLogger | undefined): LoggerLike {
   if (!logger) return console;
 
-  const wrap = (method: ((message: string, meta?: Record<string, unknown>) => void) | undefined) => (
-    ...args: unknown[]
-  ): void => {
-    if (!method) return;
-    const [message, meta] = args;
-    const rendered = typeof message === "string" ? message : String(message);
-    if (meta && typeof meta === "object" && !Array.isArray(meta)) {
-      method(rendered, meta as Record<string, unknown>);
-      return;
-    }
-    method(rendered);
-  };
+  const wrap =
+    (method: ((message: string, meta?: Record<string, unknown>) => void) | undefined) =>
+    (...args: unknown[]): void => {
+      if (!method) return;
+      const [message, meta] = args;
+      const rendered = typeof message === "string" ? message : String(message);
+      if (meta && typeof meta === "object" && !Array.isArray(meta)) {
+        method(rendered, meta as Record<string, unknown>);
+        return;
+      }
+      method(rendered);
+    };
 
   return {
     debug: wrap(logger.debug),
@@ -110,7 +119,7 @@ function safeLog(logger: PluginLogger | undefined): LoggerLike {
 
 function asObject(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === "object" && !Array.isArray(value)
-    ? value as Record<string, unknown>
+    ? (value as Record<string, unknown>)
     : undefined;
 }
 
@@ -168,7 +177,10 @@ export function applyManagedMemoryBoundaryConfig(
   const pluginEntry = ensureObject(entries, PLUGIN_ID);
   const pluginHooks = ensureObject(pluginEntry, "hooks");
   const memoryCore = ensureObject(entries, NATIVE_MEMORY_PLUGIN_ID);
-  const internalHooks = ensureObject(ensureObject(ensureObject(config, "hooks"), "internal"), "entries");
+  const internalHooks = ensureObject(
+    ensureObject(ensureObject(config, "hooks"), "internal"),
+    "entries",
+  );
   const sessionMemory = ensureObject(internalHooks, "session-memory");
   const agents = ensureObject(config, "agents");
   const defaults = ensureObject(agents, "defaults");
@@ -178,7 +190,13 @@ export function applyManagedMemoryBoundaryConfig(
   const tools = ensureObject(config, "tools");
 
   setManagedValue(slots, "memory", PLUGIN_ID, "plugins.slots.memory", changedPaths);
-  setManagedValue(pluginEntry, "enabled", true, `plugins.entries.${PLUGIN_ID}.enabled`, changedPaths);
+  setManagedValue(
+    pluginEntry,
+    "enabled",
+    true,
+    `plugins.entries.${PLUGIN_ID}.enabled`,
+    changedPaths,
+  );
   setManagedValue(
     pluginHooks,
     "allowPromptInjection",
@@ -215,7 +233,9 @@ export function applyManagedMemoryBoundaryConfig(
     changedPaths,
   );
 
-  const currentAlsoAllow = Array.isArray(tools.alsoAllow) ? normalizeStringList(tools.alsoAllow) : [];
+  const currentAlsoAllow = Array.isArray(tools.alsoAllow)
+    ? normalizeStringList(tools.alsoAllow)
+    : [];
   const nextAlsoAllow = normalizeStringList([...currentAlsoAllow, ...CHAT_FACING_MEMORY_TOOLS]);
   if (!arraysEqual(currentAlsoAllow, nextAlsoAllow)) {
     tools.alsoAllow = nextAlsoAllow;
@@ -244,7 +264,10 @@ function getConfigString(root: Record<string, unknown> | undefined, path: string
   return typeof value === "string" ? value.trim() : "";
 }
 
-function getConfigBoolean(root: Record<string, unknown> | undefined, path: string[]): boolean | undefined {
+function getConfigBoolean(
+  root: Record<string, unknown> | undefined,
+  path: string[],
+): boolean | undefined {
   const value = getConfigValue(root, path);
   return typeof value === "boolean" ? value : undefined;
 }
@@ -260,9 +283,11 @@ function shouldSkipCapture(event: Record<string, unknown>, ctx: Record<string, u
   const provider = typeof ctx.messageProvider === "string" ? ctx.messageProvider : "";
   const trigger = typeof ctx.trigger === "string" ? ctx.trigger : "";
   const sessionKey = resolveSessionKey(ctx);
-  return ["exec-event", "cron-event"].includes(provider)
-    || ["heartbeat", "cron", "memory"].includes(trigger)
-    || sessionKey.startsWith("temp:");
+  return (
+    ["exec-event", "cron-event"].includes(provider) ||
+    ["heartbeat", "cron", "memory"].includes(trigger) ||
+    sessionKey.startsWith("temp:")
+  );
 }
 
 function isControlCommandText(text: string): boolean {
@@ -323,9 +348,7 @@ function buildRecallSkippedTrace(query: string, reason: string): RetrievalTrace 
             key: "recall-query",
             label: "Recall Query",
             kind: "kv",
-            entries: [
-              { label: "query", value: query },
-            ],
+            entries: [{ label: "query", value: query }],
           },
         ],
       },
@@ -342,9 +365,7 @@ function buildRecallSkippedTrace(query: string, reason: string): RetrievalTrace 
             key: "skip-reason",
             label: "Skip Reason",
             kind: "kv",
-            entries: [
-              { label: "reason", value: reason },
-            ],
+            entries: [{ label: "reason", value: reason }],
           },
         ],
       },
@@ -384,15 +405,16 @@ function sanitizeStoredMessages(messages: MemoryMessage[]): MemoryMessage[] {
     if (!message.content.trim()) continue;
     const next = messages[index + 1];
     if (
-      message.role === "assistant"
-      && next?.role === "assistant"
-      && !message.content.includes("\n")
-      && !/[你您?？]/.test(message.content)
+      message.role === "assistant" &&
+      next?.role === "assistant" &&
+      !message.content.includes("\n") &&
+      !/[你您?？]/.test(message.content)
     ) {
       continue;
     }
     const previous = cleaned[cleaned.length - 1];
-    if (previous && previous.role === message.role && previous.content === message.content) continue;
+    if (previous && previous.role === message.role && previous.content === message.content)
+      continue;
     cleaned.push(message);
   }
   return cleaned;
@@ -403,11 +425,13 @@ function sanitizeL0Record(
   config: { includeAssistant: boolean; maxMessageChars: number },
 ): MemoryMessage[] {
   if (record.sessionKey.startsWith("temp:")) return [];
-  return sanitizeStoredMessages(normalizeMessages(record.messages, {
-    captureStrategy: "last_turn",
-    includeAssistant: config.includeAssistant,
-    maxMessageChars: config.maxMessageChars,
-  })).filter((message, index, all) => {
+  return sanitizeStoredMessages(
+    normalizeMessages(record.messages, {
+      captureStrategy: "last_turn",
+      includeAssistant: config.includeAssistant,
+      maxMessageChars: config.maxMessageChars,
+    }),
+  ).filter((message, index, all) => {
     if (message.role === "assistant") {
       return all.slice(0, index).some((item) => item.role === "user");
     }
@@ -421,11 +445,13 @@ function buildRecentMessagesForRecall(
   config: { includeAssistant: boolean; maxMessageChars: number },
 ): MemoryMessage[] {
   const normalizedPrompt = canonicalizeUserQuery(currentPrompt);
-  const normalized = sanitizeStoredMessages(normalizeMessages(rawMessages, {
-    captureStrategy: "full_session",
-    includeAssistant: config.includeAssistant,
-    maxMessageChars: config.maxMessageChars,
-  }));
+  const normalized = sanitizeStoredMessages(
+    normalizeMessages(rawMessages, {
+      captureStrategy: "full_session",
+      includeAssistant: config.includeAssistant,
+      maxMessageChars: config.maxMessageChars,
+    }),
+  );
 
   if (normalizedPrompt) {
     while (normalized.length > 0) {
@@ -440,12 +466,14 @@ function buildRecentMessagesForRecall(
 }
 
 function shouldLogStats(stats: HeartbeatStats): boolean {
-  return stats.l0Captured > 0
-    || stats.l1Created > 0
-    || stats.l2TimeUpdated > 0
-    || stats.l2ProjectUpdated > 0
-    || stats.profileUpdated > 0
-    || stats.failed > 0;
+  return (
+    stats.l0Captured > 0 ||
+    stats.l1Created > 0 ||
+    stats.l2TimeUpdated > 0 ||
+    stats.l2ProjectUpdated > 0 ||
+    stats.profileUpdated > 0 ||
+    stats.failed > 0
+  );
 }
 
 function logIndexStats(logger: LoggerLike, reason: string, stats: HeartbeatStats): void {
@@ -518,7 +546,9 @@ function buildMemoryRecallSystemContext(evidenceBlock: string): string {
     "## ClawXMemory Recall",
     "Use the following retrieved ClawXMemory evidence for this turn.",
     evidenceBlock.trim(),
-  ].filter(Boolean).join("\n\n");
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 export interface MemoryPluginRuntimeOptions {
@@ -578,35 +608,29 @@ export class MemoryPluginRuntime {
       ? loadSkillsRuntime({ skillsDir: this.config.skillsDir, logger: this.logger })
       : loadSkillsRuntime({ logger: this.logger });
     this.repository = new MemoryRepository(this.config.dbPath);
-    const persistedSettings = this.repository.getIndexingSettings(this.config.defaultIndexingSettings);
+    const persistedSettings = this.repository.getIndexingSettings(
+      this.config.defaultIndexingSettings,
+    );
     const migratedSettings = this.maybeUpgradeIndexingSettings(persistedSettings);
     const extractor = new LlmMemoryExtractor(
       options.apiConfig ?? {},
       options.pluginRuntime as Record<string, unknown> | undefined,
       this.logger,
     );
-    this.indexer = new HeartbeatIndexer(
-      this.repository,
-      extractor,
-      {
-        batchSize: this.config.heartbeatBatchSize,
-        source: "openclaw",
-        settings: migratedSettings,
-        logger: this.logger,
-      },
-    );
-    this.retriever = new ReasoningRetriever(
-      this.repository,
-      skills,
-      extractor,
-      {
-        getSettings: () => this.indexer.getSettings(),
-        isBackgroundBusy: () => this.indexingInProgress,
-      },
-    );
+    this.indexer = new HeartbeatIndexer(this.repository, extractor, {
+      batchSize: this.config.heartbeatBatchSize,
+      source: "openclaw",
+      settings: migratedSettings,
+      logger: this.logger,
+    });
+    this.retriever = new ReasoningRetriever(this.repository, skills, extractor, {
+      getSettings: () => this.indexer.getSettings(),
+      isBackgroundBusy: () => this.indexingInProgress,
+    });
     this.dreamRewriter = new DreamRewriteRunner(this.repository, extractor, {
       logger: this.logger,
-      getDreamProjectRebuildTimeoutMs: () => this.indexer.getSettings().dreamProjectRebuildTimeoutMs,
+      getDreamProjectRebuildTimeoutMs: () =>
+        this.indexer.getSettings().dreamProjectRebuildTimeoutMs,
     });
 
     if (this.config.uiEnabled) {
@@ -638,8 +662,14 @@ export class MemoryPluginRuntime {
   private maybeUpgradeIndexingSettings(settings: IndexingSettings): IndexingSettings {
     const migrationState = this.repository.getPipelineState("indexingSettingsMigration");
     if (migrationState === INDEXING_SETTINGS_MIGRATION_VERSION) return settings;
-    const normalized = this.repository.saveIndexingSettings(settings, this.config.defaultIndexingSettings);
-    this.repository.setPipelineState("indexingSettingsMigration", INDEXING_SETTINGS_MIGRATION_VERSION);
+    const normalized = this.repository.saveIndexingSettings(
+      settings,
+      this.config.defaultIndexingSettings,
+    );
+    this.repository.setPipelineState(
+      "indexingSettingsMigration",
+      INDEXING_SETTINGS_MIGRATION_VERSION,
+    );
     return normalized;
   }
 
@@ -736,7 +766,10 @@ export class MemoryPluginRuntime {
     }
     record.status = "interrupted";
     record.finishedAt = nowIso();
-    if (record.retrieval?.trace && !record.retrieval.trace.steps.some((step) => step.kind === "recall_skipped")) {
+    if (
+      record.retrieval?.trace &&
+      !record.retrieval.trace.steps.some((step) => step.kind === "recall_skipped")
+    ) {
       record.retrieval.trace.steps.push({
         stepId: `${record.retrieval.trace.traceId}:step:${record.retrieval.trace.steps.length + 1}`,
         kind: "recall_skipped",
@@ -785,16 +818,25 @@ export class MemoryPluginRuntime {
   }
 
   private appendCaseToolEvent(rawSessionKey: string, query: string, event: CaseToolEvent): void {
-    const record = this.getActiveCase(rawSessionKey) ?? (query.trim() ? this.ensureCase(rawSessionKey, query) : undefined);
+    const record =
+      this.getActiveCase(rawSessionKey) ??
+      (query.trim() ? this.ensureCase(rawSessionKey, query) : undefined);
     if (!record) return;
     record.toolEvents.push(event);
     this.upsertCase(record);
   }
 
-  private finalizeCase(rawSessionKey: string, query: string, status: CaseTraceRecord["status"], assistantReply = ""): void {
+  private finalizeCase(
+    rawSessionKey: string,
+    query: string,
+    status: CaseTraceRecord["status"],
+    assistantReply = "",
+  ): void {
     const trimmedSession = rawSessionKey.trim();
     if (!trimmedSession) return;
-    const record = this.getActiveCase(trimmedSession) ?? (query.trim() ? this.ensureCase(trimmedSession, query) : undefined);
+    const record =
+      this.getActiveCase(trimmedSession) ??
+      (query.trim() ? this.ensureCase(trimmedSession, query) : undefined);
     if (!record) return;
     if (assistantReply.trim()) {
       record.assistantReply = previewText(assistantReply, 4000);
@@ -837,7 +879,9 @@ export class MemoryPluginRuntime {
       try {
         await this.queuePromise;
       } catch (error) {
-        this.logger.warn?.(`[clawxmemory] pending index queue failed before import: ${String(error)}`);
+        this.logger.warn?.(
+          `[clawxmemory] pending index queue failed before import: ${String(error)}`,
+        );
       }
     }
     this.clearEphemeralMemoryState();
@@ -863,7 +907,8 @@ export class MemoryPluginRuntime {
         this.ensureStarted();
         return {
           manager: null,
-          error: "ClawXMemory manages dynamic session memory and does not expose OpenClaw file-memory search managers.",
+          error:
+            "ClawXMemory manages dynamic session memory and does not expose OpenClaw file-memory search managers.",
         };
       },
       resolveMemoryBackendConfig: (): { backend: "builtin" } => {
@@ -1020,7 +1065,9 @@ export class MemoryPluginRuntime {
         messages: pendingMessages,
       });
       if (captured) {
-        this.logger.info?.(`[clawxmemory] captured pending l0 before ${reason} session=${previousSessionKey}`);
+        this.logger.info?.(
+          `[clawxmemory] captured pending l0 before ${reason} session=${previousSessionKey}`,
+        );
       }
     }
     const nextGeneration = (this.conversationGenerationByRawSession.get(trimmed) ?? 0) + 1;
@@ -1035,7 +1082,9 @@ export class MemoryPluginRuntime {
     }
 
     void this.flushSessionNow(previousSessionKey, reason).catch((error) => {
-      this.logger.warn?.(`[clawxmemory] ${reason} failed session=${previousSessionKey}: ${String(error)}`);
+      this.logger.warn?.(
+        `[clawxmemory] ${reason} failed session=${previousSessionKey}: ${String(error)}`,
+      );
     });
     this.logger.info?.(
       `[clawxmemory] opened new conversation window raw_session=${trimmed} previous=${previousSessionKey} next=${nextSessionKey} reason=${reason}`,
@@ -1048,11 +1097,13 @@ export class MemoryPluginRuntime {
     const rawSessionKey = typeof event.sessionKey === "string" ? event.sessionKey.trim() : "";
     if (!rawSessionKey || rawSessionKey.startsWith("temp:")) return;
 
-    const context = event.context && typeof event.context === "object"
-      ? event.context as Record<string, unknown>
-      : undefined;
+    const context =
+      event.context && typeof event.context === "object"
+        ? (event.context as Record<string, unknown>)
+        : undefined;
     const rawContent = typeof context?.content === "string" ? context.content.trim() : "";
-    if (!rawContent || isControlCommandText(rawContent) || isSessionStartupMarkerText(rawContent)) return;
+    if (!rawContent || isControlCommandText(rawContent) || isSessionStartupMarkerText(rawContent))
+      return;
 
     const sessionKey = this.getEffectiveSessionKey(rawSessionKey);
     const rawMessageId = typeof context?.messageId === "string" ? context.messageId.trim() : "";
@@ -1099,18 +1150,25 @@ export class MemoryPluginRuntime {
     this.ensureStarted();
     const prompt = typeof event.prompt === "string" ? event.prompt : "";
     const normalizedPrompt = canonicalizeUserQuery(prompt);
-    const rawSessionKey = typeof ctx.sessionKey === "string" && ctx.sessionKey.trim()
-      ? ctx.sessionKey.trim()
-      : resolveSessionKey(ctx as Record<string, unknown>);
-    if (!normalizedPrompt || isSessionStartupMarkerText(normalizedPrompt) || isControlCommandText(normalizedPrompt)) {
+    const rawSessionKey =
+      typeof ctx.sessionKey === "string" && ctx.sessionKey.trim()
+        ? ctx.sessionKey.trim()
+        : resolveSessionKey(ctx as Record<string, unknown>);
+    if (
+      !normalizedPrompt ||
+      isSessionStartupMarkerText(normalizedPrompt) ||
+      isControlCommandText(normalizedPrompt)
+    ) {
       return;
     }
     if (!this.config.recallEnabled) {
-      if (normalizedPrompt) this.updateCaseRecallSkipped(rawSessionKey, normalizedPrompt, "recall_disabled");
+      if (normalizedPrompt)
+        this.updateCaseRecallSkipped(rawSessionKey, normalizedPrompt, "recall_disabled");
       return;
     }
     if (normalizedPrompt.length < 2) {
-      if (normalizedPrompt) this.updateCaseRecallSkipped(rawSessionKey, normalizedPrompt, "prompt_too_short");
+      if (normalizedPrompt)
+        this.updateCaseRecallSkipped(rawSessionKey, normalizedPrompt, "prompt_too_short");
       return;
     }
     try {
@@ -1184,7 +1242,9 @@ export class MemoryPluginRuntime {
     if (messageInfo.role === "assistant" && !messageInfo.content && !messageInfo.hasToolCalls) {
       if (this.hasStartupGrace(rawSessionKey)) {
         this.clearStartupGrace(rawSessionKey);
-        this.logger.warn?.(`[clawxmemory] replaced empty startup assistant session=${rawSessionKey}`);
+        this.logger.warn?.(
+          `[clawxmemory] replaced empty startup assistant session=${rawSessionKey}`,
+        );
         return {
           message: replaceAssistantMessageText(
             event.message,
@@ -1198,18 +1258,24 @@ export class MemoryPluginRuntime {
 
     if (messageInfo.role === "assistant" && this.hasPendingCommandReply(rawSessionKey)) {
       this.clearPendingCommandReply(rawSessionKey);
-      this.logger.info?.(`[clawxmemory] skipped command reply from memory session=${rawSessionKey}`);
+      this.logger.info?.(
+        `[clawxmemory] skipped command reply from memory session=${rawSessionKey}`,
+      );
       return;
     }
 
-    if (messageInfo.role === "assistant" && messageInfo.content && this.hasStartupGrace(rawSessionKey)) {
+    if (
+      messageInfo.role === "assistant" &&
+      messageInfo.content &&
+      this.hasStartupGrace(rawSessionKey)
+    ) {
       this.clearStartupGrace(rawSessionKey);
     }
 
     if (
-      messageInfo.role === "user"
-      && !this.hasStartupGrace(rawSessionKey)
-      && !this.hasPendingCommandReply(rawSessionKey)
+      messageInfo.role === "user" &&
+      !this.hasStartupGrace(rawSessionKey) &&
+      !this.hasPendingCommandReply(rawSessionKey)
     ) {
       this.clearNonMemoryTurn(rawSessionKey);
     }
@@ -1251,10 +1317,7 @@ export class MemoryPluginRuntime {
     });
   };
 
-  handleAfterToolCall = (
-    event: PluginHookAfterToolCallEvent,
-    ctx: PluginHookToolContext,
-  ): void => {
+  handleAfterToolCall = (event: PluginHookAfterToolCallEvent, ctx: PluginHookToolContext): void => {
     this.ensureStarted();
     const rawSessionKey = typeof ctx.sessionKey === "string" ? ctx.sessionKey.trim() : "";
     if (!rawSessionKey || rawSessionKey.startsWith("temp:")) return;
@@ -1272,23 +1335,28 @@ export class MemoryPluginRuntime {
       ...(event.toolCallId ? { toolCallId: event.toolCallId } : {}),
       occurredAt,
       status: failed ? "error" : "success",
-      summary: failed
-        ? `${event.toolName} failed.`
-        : `${event.toolName} completed.`,
+      summary: failed ? `${event.toolName} failed.` : `${event.toolName} completed.`,
       paramsPreview: previewJson(event.params, 240),
       resultPreview,
       ...(typeof event.durationMs === "number" ? { durationMs: event.durationMs } : {}),
     });
   };
 
-  handleAgentEnd = async (event: PluginHookAgentEndEvent, ctx: PluginHookAgentContext): Promise<void> => {
+  handleAgentEnd = async (
+    event: PluginHookAgentEndEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<void> => {
     this.ensureStarted();
     if (!this.config.addEnabled) return;
-    if (shouldSkipCapture(event as unknown as Record<string, unknown>, ctx as Record<string, unknown>)) return;
+    if (
+      shouldSkipCapture(event as unknown as Record<string, unknown>, ctx as Record<string, unknown>)
+    )
+      return;
 
-    const rawSessionKey = typeof ctx.sessionKey === "string" && ctx.sessionKey.trim()
-      ? ctx.sessionKey.trim()
-      : resolveSessionKey(ctx as Record<string, unknown>);
+    const rawSessionKey =
+      typeof ctx.sessionKey === "string" && ctx.sessionKey.trim()
+        ? ctx.sessionKey.trim()
+        : resolveSessionKey(ctx as Record<string, unknown>);
     const sessionKey = this.getEffectiveSessionKey(rawSessionKey);
     try {
       if (this.hasNonMemoryTurn(rawSessionKey)) {
@@ -1355,12 +1423,16 @@ export class MemoryPluginRuntime {
     }
   };
 
-  handleBeforeReset = async (event: PluginHookBeforeResetEvent, ctx: PluginHookAgentContext): Promise<void> => {
+  handleBeforeReset = async (
+    event: PluginHookBeforeResetEvent,
+    ctx: PluginHookAgentContext,
+  ): Promise<void> => {
     this.ensureStarted();
     if (!this.config.addEnabled) return;
-    const fallbackRawSession = typeof ctx.sessionKey === "string" && ctx.sessionKey.trim()
-      ? this.getEffectiveSessionKey(ctx.sessionKey)
-      : this.activeSessionKey;
+    const fallbackRawSession =
+      typeof ctx.sessionKey === "string" && ctx.sessionKey.trim()
+        ? this.getEffectiveSessionKey(ctx.sessionKey)
+        : this.activeSessionKey;
     const sessionKey = fallbackRawSession?.trim() ?? "";
     if (!sessionKey || sessionKey.startsWith("temp:")) return;
 
@@ -1380,7 +1452,9 @@ export class MemoryPluginRuntime {
           messages,
         });
         if (captured) {
-          this.logger.info?.(`[clawxmemory] captured pending l0 before reset session=${sessionKey}`);
+          this.logger.info?.(
+            `[clawxmemory] captured pending l0 before reset session=${sessionKey}`,
+          );
         }
       }
       await this.flushSessionNow(sessionKey, "before_reset");
@@ -1388,7 +1462,9 @@ export class MemoryPluginRuntime {
         this.activeSessionKey = undefined;
       }
     } catch (error) {
-      this.logger.warn?.(`[clawxmemory] before_reset flush failed session=${sessionKey}: ${String(error)}`);
+      this.logger.warn?.(
+        `[clawxmemory] before_reset flush failed session=${sessionKey}: ${String(error)}`,
+      );
     }
   };
 
@@ -1628,7 +1704,10 @@ export class MemoryPluginRuntime {
     return this.requestIndexRun(reason, [sessionKey]);
   }
 
-  private flushAllNow(reason: string, options?: { allowWhileDream?: boolean }): Promise<HeartbeatStats> {
+  private flushAllNow(
+    reason: string,
+    options?: { allowWhileDream?: boolean },
+  ): Promise<HeartbeatStats> {
     for (const sessionKey of Array.from(this.debouncedSessions)) {
       this.clearIdleTimer(sessionKey);
     }
@@ -1664,7 +1743,12 @@ export class MemoryPluginRuntime {
         if (newL1Count < settings.autoDreamMinNewL1) {
           const summary = `Skipped automatic Dream: ${newL1Count} new L1 windows since the last successful Dream, below threshold ${settings.autoDreamMinNewL1}.`;
           this.recordDreamLifecycle("skipped", summary, { completedAt: nowIso() });
-          return this.buildSkippedDreamResult(trigger, prepFlush, summary, "new_l1_below_threshold");
+          return this.buildSkippedDreamResult(
+            trigger,
+            prepFlush,
+            summary,
+            "new_l1_below_threshold",
+          );
         }
       }
       const outcome = await this.dreamRewriter.run();
@@ -1683,18 +1767,20 @@ export class MemoryPluginRuntime {
         status: "success" as const,
       };
       return result;
-    })().catch((error) => {
-      this.recordDreamLifecycle("failed", `Dream ${trigger} failed: ${String(error)}`, {
-        completedAt: nowIso(),
+    })()
+      .catch((error) => {
+        this.recordDreamLifecycle("failed", `Dream ${trigger} failed: ${String(error)}`, {
+          completedAt: nowIso(),
+        });
+        throw error;
+      })
+      .finally(() => {
+        this.dreamRunPromise = undefined;
+        this.dreamRunLocked = false;
+        if ((this.queuedFullRun || this.queuedSessionKeys.size > 0) && !this.queuePromise) {
+          this.queuePromise = this.drainIndexQueue();
+        }
       });
-      throw error;
-    }).finally(() => {
-      this.dreamRunPromise = undefined;
-      this.dreamRunLocked = false;
-      if ((this.queuedFullRun || this.queuedSessionKeys.size > 0) && !this.queuePromise) {
-        this.queuePromise = this.drainIndexQueue();
-      }
-    });
 
     this.dreamRunPromise = promise;
     return promise;
@@ -1717,7 +1803,9 @@ export class MemoryPluginRuntime {
     void (async () => {
       try {
         if (this.stopped) return;
-        const repair = this.repository.repairL0Sessions((record) => sanitizeL0Record(record, this.config));
+        const repair = this.repository.repairL0Sessions((record) =>
+          sanitizeL0Record(record, this.config),
+        );
         if (repair.updated === 0 && repair.removed === 0) {
           this.repository.setPipelineState("repairVersion", MEMORY_REPAIR_VERSION);
           this.logger.info?.("[clawxmemory] startup repair skipped: no l0 changes needed");
@@ -1745,7 +1833,7 @@ export class MemoryPluginRuntime {
 
   private resolveWorkspaceDir(): string {
     const configured = getConfigString(this.currentApiConfig, ["agents", "defaults", "workspace"]);
-    return resolve(configured || join(homedir(), ".openclaw", "workspace"));
+    return resolve(configured || join(resolveStateDir(process.env), "workspace-main"));
   }
 
   private async runStartupInitialization(): Promise<void> {
@@ -1763,7 +1851,9 @@ export class MemoryPluginRuntime {
       const loaded = await Promise.resolve(this.pluginRuntime.config.loadConfig());
       this.currentApiConfig = asObject(loaded) ?? {};
     } catch (error) {
-      this.logger.warn?.(`[clawxmemory] failed to load OpenClaw config for managed memory boundary: ${String(error)}`);
+      this.logger.warn?.(
+        `[clawxmemory] failed to load OpenClaw config for managed memory boundary: ${String(error)}`,
+      );
     }
 
     const diagnostics = this.collectMemoryBoundaryDiagnostics();
@@ -1778,7 +1868,9 @@ export class MemoryPluginRuntime {
           `[clawxmemory] managed memory config updated: ${repair.changedPaths.join(", ")}`,
         );
       } else {
-        this.logger.info?.("[clawxmemory] managed memory config already matches desired state; restarting gateway.");
+        this.logger.info?.(
+          "[clawxmemory] managed memory config already matches desired state; restarting gateway.",
+        );
       }
       this.currentApiConfig = repair.config;
       this.setStartupRepairState("running", { message: STARTUP_BOUNDARY_RUNNING_MESSAGE });
@@ -1789,7 +1881,9 @@ export class MemoryPluginRuntime {
       );
 
       if (restart.termination === "timeout" || restart.termination === "no-output-timeout") {
-        this.logger.warn?.("[clawxmemory] `openclaw gateway restart` timed out after managed memory config update; waiting for restart.");
+        this.logger.warn?.(
+          "[clawxmemory] `openclaw gateway restart` timed out after managed memory config update; waiting for restart.",
+        );
         return "restarting";
       }
       if (restart.code !== 0) {
@@ -1820,20 +1914,56 @@ export class MemoryPluginRuntime {
     if (slotOwner !== PLUGIN_ID) {
       pushManagedIssue(`plugins.slots.memory=${slotOwner || "(empty)"}`);
     }
-    if (getConfigBoolean(this.currentApiConfig, ["plugins", "entries", NATIVE_MEMORY_PLUGIN_ID, "enabled"]) !== false) {
+    if (
+      getConfigBoolean(this.currentApiConfig, [
+        "plugins",
+        "entries",
+        NATIVE_MEMORY_PLUGIN_ID,
+        "enabled",
+      ]) !== false
+    ) {
       pushManagedIssue(`plugins.entries.${NATIVE_MEMORY_PLUGIN_ID}.enabled should be false`);
     }
-    if (getConfigBoolean(this.currentApiConfig, ["hooks", "internal", "entries", "session-memory", "enabled"]) !== false) {
+    if (
+      getConfigBoolean(this.currentApiConfig, [
+        "hooks",
+        "internal",
+        "entries",
+        "session-memory",
+        "enabled",
+      ]) !== false
+    ) {
       pushManagedIssue("hooks.internal.entries.session-memory.enabled should be false");
     }
-    if (getConfigBoolean(this.currentApiConfig, ["agents", "defaults", "memorySearch", "enabled"]) !== false) {
+    if (
+      getConfigBoolean(this.currentApiConfig, ["agents", "defaults", "memorySearch", "enabled"]) !==
+      false
+    ) {
       pushManagedIssue("agents.defaults.memorySearch.enabled should be false");
     }
-    if (getConfigBoolean(this.currentApiConfig, ["agents", "defaults", "compaction", "memoryFlush", "enabled"]) !== false) {
+    if (
+      getConfigBoolean(this.currentApiConfig, [
+        "agents",
+        "defaults",
+        "compaction",
+        "memoryFlush",
+        "enabled",
+      ]) !== false
+    ) {
       pushManagedIssue("agents.defaults.compaction.memoryFlush.enabled should be false");
     }
-    if (getConfigBoolean(this.currentApiConfig, ["plugins", "entries", PLUGIN_ID, "hooks", "allowPromptInjection"]) === false) {
-      pushManagedIssue(`plugins.entries.${PLUGIN_ID}.hooks.allowPromptInjection should not be false`);
+    if (
+      getConfigBoolean(this.currentApiConfig, [
+        "plugins",
+        "entries",
+        PLUGIN_ID,
+        "hooks",
+        "allowPromptInjection",
+      ]) === false
+    ) {
+      pushManagedIssue(
+        `plugins.entries.${PLUGIN_ID}.hooks.allowPromptInjection should not be false`,
+      );
     }
     if (!this.config.recallEnabled) {
       runtimeIssues.push("plugin config recallEnabled=false");
@@ -1874,7 +2004,9 @@ export class MemoryPluginRuntime {
       return;
     }
     if (diagnostics.memoryRuntimeHealthy) {
-      this.logger.info?.("[clawxmemory] dynamic memory runtime ready: active memory slot is ClawXMemory.");
+      this.logger.info?.(
+        "[clawxmemory] dynamic memory runtime ready: active memory slot is ClawXMemory.",
+      );
       return;
     }
     this.logger.warn?.(

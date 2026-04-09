@@ -612,7 +612,7 @@ export function registerHooks(api: OpenClawPluginApi): void {
         recordDetection(sessionKey, "S1", "onToolCallProposed", `tool: ${toolName}`);
         return;
       }
-      const baseDir = privacyConfig.session?.baseDir ?? "~/.openclaw";
+      const baseDir = privacyConfig.session?.baseDir ?? "~/.edgeclaw";
 
       // File-access guard for cloud models only — local models (Guard Agent
       // sessions and S3 active routing) are trusted to read full history.

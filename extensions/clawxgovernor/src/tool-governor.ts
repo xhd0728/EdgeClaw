@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
 type RiskLevel = "read" | "workspace_write" | "exec" | "network" | "subagent_control" | "unknown";
 type RiskAction = "allow" | "requireApproval" | "block";
@@ -104,7 +104,7 @@ export function registerToolGovernor(
 ): void {
   const stateDir =
     (pluginConfig.governorStateDir as string) ??
-    path.join(os.homedir(), ".openclaw", "cc-tool-governor");
+    path.join(resolveStateDir(process.env), "cc-tool-governor");
   const summarizeThreshold = (pluginConfig.summarizeThreshold as number) ?? 4000;
   const loopWindowSize =
     (pluginConfig.loopWindowSize as number) ?? DEFAULT_RISK_RULES.loopDetection.windowSize;

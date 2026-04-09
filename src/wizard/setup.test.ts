@@ -89,7 +89,7 @@ const resolveGatewayPort = vi.hoisted(() =>
 );
 const readConfigFileSnapshot = vi.hoisted(() =>
   vi.fn(async () => ({
-    path: "/tmp/.openclaw/openclaw.json",
+    path: "/tmp/.edgeclaw/openclaw.json",
     exists: false,
     raw: null as string | null,
     parsed: {},
@@ -171,6 +171,7 @@ vi.mock("../config/config.js", () => ({
 
 vi.mock("../commands/onboard-helpers.js", () => ({
   DEFAULT_WORKSPACE: "/tmp/openclaw-workspace",
+  resolveDefaultWorkspace: () => "/tmp/openclaw-workspace",
   applyWizardMetadata: (cfg: unknown) => cfg,
   summarizeExistingConfig: () => "summary",
   handleReset: async () => {},
@@ -275,7 +276,7 @@ describe("runSetupWizard", () => {
 
   it("exits when config is invalid", async () => {
     readConfigFileSnapshot.mockResolvedValueOnce({
-      path: "/tmp/.openclaw/openclaw.json",
+      path: "/tmp/.edgeclaw/openclaw.json",
       exists: true,
       raw: "{}",
       parsed: {},
@@ -502,7 +503,7 @@ describe("runSetupWizard", () => {
       },
     ]);
     readConfigFileSnapshot.mockResolvedValueOnce({
-      path: "/tmp/.openclaw/openclaw.json",
+      path: "/tmp/.edgeclaw/openclaw.json",
       exists: true,
       raw: "{}",
       parsed: {},
@@ -557,7 +558,7 @@ describe("runSetupWizard", () => {
     process.env.OPENCLAW_GATEWAY_PASSWORD = "gateway-ref-password"; // pragma: allowlist secret
     probeGatewayReachable.mockClear();
     readConfigFileSnapshot.mockResolvedValueOnce({
-      path: "/tmp/.openclaw/openclaw.json",
+      path: "/tmp/.edgeclaw/openclaw.json",
       exists: true,
       raw: "{}",
       parsed: {},

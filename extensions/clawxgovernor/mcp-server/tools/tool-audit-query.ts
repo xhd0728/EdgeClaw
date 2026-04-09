@@ -1,8 +1,8 @@
 import * as fs from "node:fs";
-import * as os from "node:os";
 import * as path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk/state-paths";
 
-const AUDIT_FILE = path.join(os.homedir(), ".openclaw", "cc-tool-governor", "audit.jsonl");
+const AUDIT_FILE = path.join(resolveStateDir(process.env), "cc-tool-governor", "audit.jsonl");
 
 interface AuditEntry {
   timestamp: string;

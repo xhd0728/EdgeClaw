@@ -89,7 +89,7 @@ function resolveHostExecPolicy(params: {
   securitySource: string;
   askSource: string;
 } {
-  const basePath = "~/.openclaw/exec-approvals.json";
+  const basePath = "~/.edgeclaw/exec-approvals.json";
   const agentEntry =
     params.agentId && params.approvals.agents && params.approvals.agents[params.agentId]
       ? params.approvals.agents[params.agentId]
@@ -201,7 +201,7 @@ export async function noteSecurityWarnings(cfg: OpenClawConfig) {
   if (cfg.approvals?.exec?.enabled === false) {
     warnings.push(
       "- Note: approvals.exec.enabled=false disables approval forwarding only.",
-      "  Host exec gating still comes from ~/.openclaw/exec-approvals.json.",
+      "  Host exec gating still comes from ~/.edgeclaw/exec-approvals.json.",
       `  Check local policy with: ${formatCliCommand("openclaw approvals get --gateway")}`,
     );
   }

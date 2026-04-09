@@ -87,7 +87,10 @@ async function listMarkdownFiles(rootDir: string): Promise<string[]> {
 }
 
 function normalizeScopePath(value: string): string {
-  return value.replace(/\\/g, "/").replace(/^\.?\//, "").trim();
+  return value
+    .replace(/\\/g, "/")
+    .replace(/^\.?\//, "")
+    .trim();
 }
 
 function relativizeScopePath(candidatePath: string, workspaceDir: string | undefined): string {
@@ -112,8 +115,7 @@ function pathRuleMatches(scope: string, candidatePath: string): boolean {
   if (!normalizedScope) return false;
   const normalizedCandidate = normalizeScopePath(candidatePath);
   return (
-    normalizedCandidate === normalizedScope ||
-    normalizedCandidate.startsWith(`${normalizedScope}/`)
+    normalizedCandidate === normalizedScope || normalizedCandidate.startsWith(`${normalizedScope}/`)
   );
 }
 
@@ -157,7 +159,11 @@ async function loadMatchedPathRules(params: {
   workspaceDir?: string;
   origin: "user" | "workspace";
 }): Promise<PathRule[]> {
-  const signals = deriveScopeSignals(params.relevantFiles, params.scopeSignals, params.workspaceDir);
+  const signals = deriveScopeSignals(
+    params.relevantFiles,
+    params.scopeSignals,
+    params.workspaceDir,
+  );
   if (signals.length === 0) return [];
   const ruleFiles = await listMarkdownFiles(params.rootDir);
   const matches: PathRule[] = [];
@@ -207,9 +213,7 @@ function summarizeRuleMatch(rule: PathRule): string {
 
 function renderRuleMatches(pathRules: PathRule[]): string | undefined {
   if (pathRules.length === 0) return undefined;
-  return pathRules
-    .map((rule) => summarizeRuleMatch(rule))
-    .join("\n\n");
+  return pathRules.map((rule) => summarizeRuleMatch(rule)).join("\n\n");
 }
 
 function extractMarkdownSection(content: string, headingLabel: string): string | undefined {
@@ -219,7 +223,10 @@ function extractMarkdownSection(content: string, headingLabel: string): string |
     const match = /^(#{1,6})\s+(.*\S)\s*$/.exec(lines[index] ?? "");
     if (!match) continue;
     const level = match[1]!.length;
-    const heading = match[2]!.trim().replace(/[:：]\s*$/, "").toLowerCase();
+    const heading = match[2]!
+      .trim()
+      .replace(/[:：]\s*$/, "")
+      .toLowerCase();
     if (heading !== normalizedHeading) continue;
     const sectionLines: string[] = [];
     for (let cursor = index + 1; cursor < lines.length; cursor++) {
@@ -331,7 +338,9 @@ function parseGitDiffSummary(raw: string | undefined): string[] {
     .slice(0, 5);
 }
 
-async function resolveWorkspaceDirFromSessionFile(sessionFile: string | undefined): Promise<string | undefined> {
+async function resolveWorkspaceDirFromSessionFile(
+  sessionFile: string | undefined,
+): Promise<string | undefined> {
   if (!sessionFile) return undefined;
   try {
     const raw = await fs.readFile(sessionFile, "utf-8");
@@ -355,7 +364,7 @@ function renderStaticProjectContext(params: {
   sections.push(`ClawXContext policy:\n${PLUGIN_STABLE_GUIDANCE}`);
   if (params.userOpenclawMd?.trim()) {
     sections.push(
-      `User defaults from ~/.openclaw/OPENCLAW.md:\n${truncateBlock(params.userOpenclawMd)}`,
+      `User defaults from ~/.edgeclaw/OPENCLAW.md:\n${truncateBlock(params.userOpenclawMd)}`,
     );
   }
   if (params.openclawMd?.trim()) {
@@ -454,9 +463,7 @@ function buildSources(params: {
       kind: "git",
       present: params.gitAvailable,
       ...(params.gitRoot ? { path: params.gitRoot } : {}),
-      ...(params.gitAvailable
-        ? { summary: "git branch / recent commits / status available" }
-        : {}),
+      ...(params.gitAvailable ? { summary: "git branch / recent commits / status available" } : {}),
       usedForPrompt: params.gitAvailable,
       usedForCompaction: false,
     },
@@ -484,7 +491,7 @@ export class ProjectContextManager {
       return undefined;
     }
 
-    const userOpenclawMdPath = path.join(homedir(), ".openclaw", "OPENCLAW.md");
+    const userOpenclawMdPath = path.join(homedir(), ".edgeclaw", "OPENCLAW.md");
     const openclawMdPath = path.join(workspaceDir, "OPENCLAW.md");
     const openclawLocalMdPath = path.join(workspaceDir, "OPENCLAW.local.md");
     const [userOpenclawMd, openclawMd, openclawLocalMd] = await Promise.all([
@@ -508,19 +515,17 @@ export class ProjectContextManager {
       openclawLocalCompactInstructions,
     ].filter((value): value is string => Boolean(value?.trim()));
 
-    const relevantFiles = (params.relevantFiles ?? [])
-      .map((value) => value.trim())
-      .filter(Boolean);
+    const relevantFiles = (params.relevantFiles ?? []).map((value) => value.trim()).filter(Boolean);
     const [userPathRules, workspacePathRules] = await Promise.all([
       loadMatchedPathRules({
-        rootDir: path.join(homedir(), ".openclaw", "rules"),
+        rootDir: path.join(homedir(), ".edgeclaw", "rules"),
         relevantFiles,
         workspaceDir,
         origin: "user",
         ...(params.scopeSignals ? { scopeSignals: params.scopeSignals } : {}),
       }),
       loadMatchedPathRules({
-        rootDir: path.join(workspaceDir, ".openclaw", "rules"),
+        rootDir: path.join(workspaceDir, ".edgeclaw", "rules"),
         relevantFiles,
         workspaceDir,
         origin: "workspace",

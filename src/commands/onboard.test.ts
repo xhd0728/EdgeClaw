@@ -23,7 +23,8 @@ vi.mock("../config/config.js", () => ({
 }));
 
 vi.mock("./onboard-helpers.js", () => ({
-  DEFAULT_WORKSPACE: "~/.openclaw/workspace",
+  DEFAULT_WORKSPACE: "~/.edgeclaw/workspace-main",
+  resolveDefaultWorkspace: () => "~/.edgeclaw/workspace-main",
   handleReset: mocks.handleReset,
 }));
 

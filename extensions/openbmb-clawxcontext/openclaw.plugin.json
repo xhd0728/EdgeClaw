@@ -49,7 +49,7 @@
   "uiHints": {
     "dataDir": {
       "label": "Data Directory",
-      "placeholder": "~/.openclaw/clawxcontext"
+      "placeholder": "~/.edgeclaw/clawxcontext"
     },
     "protectedRecentTurns": {
       "label": "Protected Recent Turns",
